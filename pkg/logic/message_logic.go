@@ -6,11 +6,11 @@ import (
 	"github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/event"
 	"github.com/thk-im/thk-im-base-server/model"
+	"github.com/thk-im/thk-im-base-server/utils"
 	"github.com/thk-im/thk-im-msg-api-server/pkg/app"
 	"github.com/thk-im/thk-im-msg-api-server/pkg/errorx"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type MessageLogic struct {
@@ -215,18 +215,32 @@ func (l *MessageLogic) pubSaveMsgEvent(msgBody string, receivers []int64, sessio
 
 // 发布推送消息
 func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, deliverKey string) ([]int64, []int64, error) {
-	onlineTimeout := l.appCtx.Config().IM.OnlineTimeout
-	onlineTime := time.Now().UnixMilli() - onlineTimeout*int64(time.Second)
-	onlineUsers, err := l.appCtx.UserOnlineStatusModel().GetOnlineUserIds(uIds, onlineTime)
+	// onlineTimeout := l.appCtx.Config().IM.OnlineTimeout
+	// onlineTime := time.Now().UnixMilli() - onlineTimeout*int64(time.Second)
+	// onlineUsers, err := l.appCtx.UserOnlineStatusModel().GetOnlineUserIds(uIds, onlineTime)
+	uidOnlineKeys := make([]string, 0)
+	for _, uid := range uIds {
+		uidOnlineKey := fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, uid)
+		uidOnlineKeys = append(uidOnlineKeys, uidOnlineKey)
+	}
+	onlineUsers := make([]int64, 0)
+	onlineCacheUsers, err := utils.BatchGet(l.appCtx.RedisCache(), uidOnlineKeys)
 	if err != nil {
 		// 如果查询报错 默认全部用户为离线
 		l.appCtx.Logger().Error("get userOnlineStatus error:", err)
-		onlineUsers = make([]int64, 0)
+	} else {
+		for index, cacheUser := range onlineCacheUsers {
+			if cacheUser != nil {
+				onlineUsers = append(onlineUsers, uIds[index])
+			}
+		}
 	}
+
 	onlineUserMap := make(map[int64]bool, 0)
 	for _, uid := range onlineUsers {
 		onlineUserMap[uid] = true
 	}
+
 	offlineUsers := make([]int64, 0)
 	for _, uid := range uIds {
 		online, ok := onlineUserMap[uid]

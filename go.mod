@@ -1,14 +1,10 @@
 module github.com/thk-im/thk-im-msg-api-server
 
-
 go 1.19
 
-require (
-	github.com/thk-im/thk-im-base-server v0.0.0-20231209060741-425a8695829f
-)
+require github.com/thk-im/thk-im-base-server v0.0.0-20231209090331-e6268278e55f
 
 require (
-	github.com/THK-IM/THK-IM-Server v0.0.0-20231208145610-f5d2d1648cb0 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bwmarrin/snowflake v0.3.0 // indirect
@@ -20,7 +16,7 @@ require (
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
-	github.com/gin-gonic/gin v1.9.1 // indirect
+	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.14.0 // indirect
@@ -79,5 +75,5 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/mysql v1.5.2 // indirect
-	gorm.io/gorm v1.25.5 // indirect
+	gorm.io/gorm v1.25.5
 )

@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/thk-im/thk-im-base-server/dto"
+	"github.com/thk-im/thk-im-base-server/middleware"
 	"github.com/thk-im/thk-im-base-server/model"
 	"github.com/thk-im/thk-im-msg-api-server/pkg/app"
 	"github.com/thk-im/thk-im-msg-api-server/pkg/logic"
@@ -37,7 +38,7 @@ func createSession(appCtx *app.Context) gin.HandlerFunc {
 			}
 		}
 
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 {
 			if requestUid != req.Members[0] {
 				appCtx.Logger().Warn("param uid error")
@@ -78,7 +79,7 @@ func updateSession(appCtx *app.Context) gin.HandlerFunc {
 		} else {
 			req.Id = int64(id)
 		}
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 {
 			if sessionUser, err := appCtx.SessionUserModel().FindSessionUser(req.Id, requestUid); err != nil {
 				dto.ResponseForbidden(ctx)
@@ -114,7 +115,7 @@ func updateUserSession(appCtx *app.Context) gin.HandlerFunc {
 			dto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
 			appCtx.Logger().Warn("param uid error")
 			dto.ResponseForbidden(ctx)
@@ -139,7 +140,7 @@ func getUserSessions(appCtx *app.Context) gin.HandlerFunc {
 			dto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
 			appCtx.Logger().Warn("param uid error")
 			dto.ResponseForbidden(ctx)
@@ -176,7 +177,7 @@ func getUserSession(appCtx *app.Context) gin.HandlerFunc {
 			dto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 && requestUid != iUid {
 			appCtx.Logger().Warn("param uid error")
 			dto.ResponseForbidden(ctx)
@@ -204,7 +205,7 @@ func getSessionMessages(appCtx *app.Context) gin.HandlerFunc {
 			dto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 {
 			if _, err := appCtx.SessionUserModel().FindSessionUser(iSessionId, requestUid); err != nil {
 				appCtx.Logger().Warn(err)
@@ -246,7 +247,7 @@ func deleteSessionMessage(appCtx *app.Context) gin.HandlerFunc {
 			dto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 {
 			if sessionUser, err := appCtx.SessionUserModel().FindSessionUser(iSessionId, requestUid); err != nil {
 				appCtx.Logger().Warn(err)
@@ -291,7 +292,7 @@ func deleteUserSession(appCtx *app.Context) gin.HandlerFunc {
 			dto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 && requestUid != iUid {
 			appCtx.Logger().Warn("param uid error")
 			dto.ResponseForbidden(ctx)

@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/thk-im/thk-im-base-server/dto"
+	"github.com/thk-im/thk-im-base-server/middleware"
 	"github.com/thk-im/thk-im-msg-api-server/pkg/app"
 	"github.com/thk-im/thk-im-msg-api-server/pkg/logic"
 )
@@ -21,7 +22,7 @@ func ackUserMessages(appCtx *app.Context) gin.HandlerFunc {
 			dto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
 			appCtx.Logger().Warn("param uid error")
 			dto.ResponseForbidden(ctx)
@@ -45,7 +46,7 @@ func readUserMessage(appCtx *app.Context) gin.HandlerFunc {
 			dto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
 			appCtx.Logger().Warn("param uid error")
 			dto.ResponseForbidden(ctx)
@@ -69,7 +70,7 @@ func revokeUserMessage(appCtx *app.Context) gin.HandlerFunc {
 			dto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
 			appCtx.Logger().Warn("param uid error")
 			dto.ResponseForbidden(ctx)
@@ -93,7 +94,7 @@ func reeditUserMessage(appCtx *app.Context) gin.HandlerFunc {
 			dto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
 			appCtx.Logger().Warn("param uid error")
 			dto.ResponseForbidden(ctx)
@@ -117,7 +118,7 @@ func forwardUserMessage(appCtx *app.Context) gin.HandlerFunc {
 			dto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 && requestUid != req.FUid {
 			appCtx.Logger().Warn("param uid error")
 			dto.ResponseForbidden(ctx)

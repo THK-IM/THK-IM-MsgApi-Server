@@ -4,13 +4,14 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/thk-im/thk-im-base-server/conf"
+	"github.com/thk-im/thk-im-base-server/middleware"
 	"github.com/thk-im/thk-im-msg-api-server/pkg/app"
 )
 
 func RegisterMsgApiHandlers(ctx *app.Context) {
 	httpEngine := ctx.HttpEngine()
-	userAuth := userTokenAuth(ctx)
-	ipAuth := whiteIpAuth(ctx)
+	userAuth := middleware.UserTokenAuth(ctx.Context)
+	ipAuth := middleware.WhiteIpAuth(ctx.Context)
 	var authMiddleware gin.HandlerFunc
 	if ctx.Config().DeployMode == conf.DeployExposed {
 		authMiddleware = userAuth

@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/thk-im/thk-im-base-server/dto"
+	"github.com/thk-im/thk-im-base-server/middleware"
 	"github.com/thk-im/thk-im-base-server/model"
 	"github.com/thk-im/thk-im-msg-api-server/pkg/app"
 	"github.com/thk-im/thk-im-msg-api-server/pkg/logic"
@@ -36,7 +37,7 @@ func getSessionUser(appCtx *app.Context) gin.HandlerFunc {
 		}
 		req.SId = sessionId
 
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 { // 检查角色权限
 			if hasPermission := checkReadPermission(appCtx, requestUid, sessionId); !hasPermission {
 				appCtx.Logger().Warn("permission error")
@@ -76,7 +77,7 @@ func addSessionUser(appCtx *app.Context) gin.HandlerFunc {
 			return
 		}
 
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 { // 检查角色权限
 			if hasPermission := checkPermission(appCtx, requestUid, sessionId, req.UIds); !hasPermission {
 				appCtx.Logger().Warn("permission error")
@@ -111,7 +112,7 @@ func deleteSessionUser(appCtx *app.Context) gin.HandlerFunc {
 			return
 		}
 
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 { // 检查角色权限
 			if hasPermission := checkPermission(appCtx, requestUid, sessionId, req.UIds); !hasPermission {
 				appCtx.Logger().Warn("permission error")
@@ -157,7 +158,7 @@ func updateSessionUser(appCtx *app.Context) gin.HandlerFunc {
 		}
 		req.SId = sessionId
 
-		requestUid := ctx.GetInt64(uidKey)
+		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 { // 检查角色权限
 			if hasPermission := checkPermission(appCtx, requestUid, sessionId, req.UIds); !hasPermission {
 				appCtx.Logger().Warn("permission error")

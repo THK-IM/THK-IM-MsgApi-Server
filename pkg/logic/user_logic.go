@@ -27,12 +27,21 @@ func (l *UserLogic) UpdateUserOnlineStatus(req *dto.PostUserOnlineReq) error {
 	var err error
 	if req.Online {
 		timeout := time.Duration(l.appCtx.Config().IM.OnlineTimeout)
-		err = l.appCtx.RedisCache().Set(context.Background(), key, req.ConnId, timeout*time.Second).Err()
+		dtoUserOnlineStatus := &dto.UserOnlineStatus{
+			UId:            req.UId,
+			Platform:       req.Platform,
+			LastOnlineTime: req.Timestamp,
+		}
+		jsonBytes, errJson := json.Marshal(dtoUserOnlineStatus)
+		if errJson != nil {
+			return errJson
+		}
+		err = l.appCtx.RedisCache().Set(context.Background(), key, string(jsonBytes), timeout*time.Second).Err()
 	} else {
 		_, err = utils.DelKeyByValue(l.appCtx.RedisCache(), key, req.ConnId)
 	}
 	if req.IsLogin { // 登录写库登录记录
-		err = l.appCtx.UserOnlineStatusModel().UpdateUserOnlineStatus(req.UId, req.Timestamp, req.ConnId, req.Platform)
+		err = l.appCtx.UserOnlineRecordModel().UpdateUserOnlineRecord(req.UId, req.Timestamp, req.ConnId, req.Platform)
 		go func() {
 			onlineReq := rpc.PostUserOnlineReq{
 				UserId:    req.UId,
@@ -52,25 +61,29 @@ func (l *UserLogic) UpdateUserOnlineStatus(req *dto.PostUserOnlineReq) error {
 }
 
 func (l *UserLogic) GetUsersOnlineStatus(uIds []int64) (*dto.GetUsersOnlineStatusRes, error) {
-	usersOnlineStatus, err := l.appCtx.UserOnlineStatusModel().GetUsersOnlineStatus(uIds)
+	uidOnlineKeys := make([]string, 0)
+	for _, uid := range uIds {
+		uidOnlineKey := fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, uid)
+		uidOnlineKeys = append(uidOnlineKeys, uidOnlineKey)
+	}
+	onlineUsers, err := utils.BatchGet(l.appCtx.RedisCache(), uidOnlineKeys)
 	if err != nil {
 		return nil, err
-	} else {
-		dtoUsersOnlineStatus := make([]*dto.UserOnlineStatus, 0)
-		for _, user := range usersOnlineStatus {
-			dtoUserOnlineStatus := &dto.UserOnlineStatus{
-				UId:            user.UserId,
-				Platform:       user.Platform,
-				LastOnlineTime: user.OnlineTime,
-			}
-			dtoUsersOnlineStatus = append(dtoUsersOnlineStatus, dtoUserOnlineStatus)
-		}
-		return &dto.GetUsersOnlineStatusRes{UsersOnlineStatus: dtoUsersOnlineStatus}, nil
 	}
-}
-
-func (l *UserLogic) user() {
-
+	dtoUsersOnlineStatus := make([]*dto.UserOnlineStatus, 0)
+	for _, onlineUser := range onlineUsers {
+		if onlineUser == nil {
+			continue
+		}
+		if jsonString, ok := onlineUser.(string); ok {
+			userOnlineStatus := &dto.UserOnlineStatus{}
+			errJson := json.Unmarshal([]byte(jsonString), userOnlineStatus)
+			if errJson == nil {
+				dtoUsersOnlineStatus = append(dtoUsersOnlineStatus, userOnlineStatus)
+			}
+		}
+	}
+	return &dto.GetUsersOnlineStatusRes{UsersOnlineStatus: dtoUsersOnlineStatus}, nil
 }
 
 func (l *UserLogic) KickUser(req *dto.KickUserReq) error {

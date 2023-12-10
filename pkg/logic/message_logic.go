@@ -215,49 +215,46 @@ func (l *MessageLogic) pubSaveMsgEvent(msgBody string, receivers []int64, sessio
 
 // 发布推送消息
 func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, deliverKey string) ([]int64, []int64, error) {
-	// onlineTimeout := l.appCtx.Config().IM.OnlineTimeout
-	// onlineTime := time.Now().UnixMilli() - onlineTimeout*int64(time.Second)
-	// onlineUsers, err := l.appCtx.UserOnlineStatusModel().GetOnlineUserIds(uIds, onlineTime)
 	uidOnlineKeys := make([]string, 0)
 	for _, uid := range uIds {
 		uidOnlineKey := fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, uid)
 		uidOnlineKeys = append(uidOnlineKeys, uidOnlineKey)
 	}
-	onlineUsers := make([]int64, 0)
-	onlineCacheUsers, err := utils.BatchGet(l.appCtx.RedisCache(), uidOnlineKeys)
+	onlineUIds := make([]int64, 0)
+	onlineUsers, err := utils.BatchGet(l.appCtx.RedisCache(), uidOnlineKeys)
 	if err != nil {
 		// 如果查询报错 默认全部用户为离线
 		l.appCtx.Logger().Error("get userOnlineStatus error:", err)
 	} else {
-		for index, cacheUser := range onlineCacheUsers {
-			if cacheUser != nil {
-				onlineUsers = append(onlineUsers, uIds[index])
+		for index, onlineUser := range onlineUsers {
+			if onlineUser != nil {
+				onlineUIds = append(onlineUIds, uIds[index])
 			}
 		}
 	}
 
-	onlineUserMap := make(map[int64]bool, 0)
-	for _, uid := range onlineUsers {
-		onlineUserMap[uid] = true
+	onlineUIdMap := make(map[int64]bool, 0)
+	for _, uid := range onlineUIds {
+		onlineUIdMap[uid] = true
 	}
 
-	offlineUsers := make([]int64, 0)
+	offlineUIds := make([]int64, 0)
 	for _, uid := range uIds {
-		online, ok := onlineUserMap[uid]
+		online, ok := onlineUIdMap[uid]
 		if !ok && online {
-			offlineUsers = append(offlineUsers, uid)
+			offlineUIds = append(offlineUIds, uid)
 		}
 	}
-	if receiverStr, errJson := json.Marshal(onlineUsers); errJson != nil {
+	receiverStr, errJson := json.Marshal(onlineUIds)
+	if errJson != nil {
 		return nil, nil, errJson
-	} else {
-		m := make(map[string]interface{})
-		m[event.PushEventTypeKey] = t
-		m[event.PushEventBodyKey] = body
-		m[event.PushEventReceiversKey] = string(receiverStr)
-		err = l.appCtx.MsgPusherPublisher().Pub(deliverKey, m)
-		return onlineUsers, offlineUsers, err
 	}
+	m := make(map[string]interface{})
+	m[event.PushEventTypeKey] = t
+	m[event.PushEventBodyKey] = body
+	m[event.PushEventReceiversKey] = string(receiverStr)
+	err = l.appCtx.MsgPusherPublisher().Pub(deliverKey, m)
+	return onlineUIds, offlineUIds, err
 }
 
 func (l *MessageLogic) DeleteUserMessage(req *dto.DeleteMessageReq) error {

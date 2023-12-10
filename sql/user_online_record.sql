@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS `user_online_status_%s`
+CREATE TABLE IF NOT EXISTS `user_online_record_%s`
 (
     `user_id`     BIGINT      NOT NULL,
     `platform`    VARCHAR(10) NOT NULL,

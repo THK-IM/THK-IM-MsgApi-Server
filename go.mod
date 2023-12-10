@@ -2,7 +2,12 @@ module github.com/thk-im/thk-im-msg-api-server
 
 go 1.19
 
-require github.com/thk-im/thk-im-base-server v0.0.0-20231209151807-0f1de8f4c568
+require github.com/thk-im/thk-im-base-server v0.0.0-20231210115213-f9fa53007dd5
+
+require (
+	github.com/golang-jwt/jwt/v5 v5.2.0 // indirect
+	github.com/h2non/filetype v1.1.3 // indirect
+)
 
 require (
 	github.com/armon/go-metrics v0.4.1 // indirect

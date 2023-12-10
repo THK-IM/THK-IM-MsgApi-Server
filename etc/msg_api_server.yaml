@@ -1,6 +1,6 @@
 Name: msg_api_server
 Host: 0.0.0.0
-Port: 10000
+Port: 20000
 Mode: debug
 # exposed外网暴露模式，校验用户token
 # backend后端模式，校验ip
@@ -50,7 +50,7 @@ Models:
     Shards: 5
   - Name: "session_object"
     Shards: 5
-  - Name: "user_online_status"
+  - Name: "user_online_record"
     Shards: 5
 ObjectStorage:
   Endpoint: "http://minio.thkim.com"

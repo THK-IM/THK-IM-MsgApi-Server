@@ -52,6 +52,7 @@ func (c *Context) Init(config *conf.Config) {
 	c.Context = &server.Context{}
 	c.Context.Init(config)
 	c.Context.SdkMap = loader.LoadSdks(c.Config().Sdks, c.Logger())
+	c.Context.ModelMap = loader.LoadModels(c.Config().Models, c.Database(), c.Logger(), c.SnowflakeNode())
 	err := loader.LoadTables(c.Config().Models, c.Database())
 	if err != nil {
 		panic(err)

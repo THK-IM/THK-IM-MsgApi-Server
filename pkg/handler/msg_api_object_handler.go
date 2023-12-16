@@ -2,9 +2,10 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/thk-im/thk-im-base-server/dto"
+	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/middleware"
 	"github.com/thk-im/thk-im-msg-api-server/pkg/app"
+	"github.com/thk-im/thk-im-msg-api-server/pkg/dto"
 	"github.com/thk-im/thk-im-msg-api-server/pkg/errorx"
 	"github.com/thk-im/thk-im-msg-api-server/pkg/logic"
 )
@@ -14,23 +15,24 @@ func getObjectUploadParams(appCtx *app.Context) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req dto.GetUploadParamsReq
 		if err := ctx.BindQuery(&req); err != nil {
-			appCtx.Logger().Warn(err.Error())
-			dto.ResponseBadRequest(ctx)
+			appCtx.Logger().Errorf("getObjectUploadParams %v %s", req, err.Error())
+			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
-			appCtx.Logger().Warn("param uid error")
-			dto.ResponseForbidden(ctx)
+			appCtx.Logger().Errorf("getObjectUploadParams %v %d", req, requestUid)
+			baseDto.ResponseForbidden(ctx)
 			return
 		}
 
 		res, err := l.GetUploadParams(req)
 		if err != nil {
-			appCtx.Logger().Warn(err.Error())
-			dto.ResponseInternalServerError(ctx, err)
+			appCtx.Logger().Errorf("getObjectUploadParams %v %d", req, requestUid)
+			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			dto.ResponseSuccess(ctx, res)
+			appCtx.Logger().Infof("getObjectUploadParams %v %v", req, res)
+			baseDto.ResponseSuccess(ctx, res)
 		}
 	}
 }
@@ -40,8 +42,8 @@ func getObjectDownloadUrl(appCtx *app.Context) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req dto.GetDownloadUrlReq
 		if err := ctx.BindQuery(&req); err != nil {
-			appCtx.Logger().Warn(err.Error())
-			dto.ResponseBadRequest(ctx)
+			appCtx.Logger().Errorf("getObjectDownloadUrl %v", err)
+			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 
@@ -50,13 +52,15 @@ func getObjectDownloadUrl(appCtx *app.Context) gin.HandlerFunc {
 
 		path, err := l.GetObjectByKey(req)
 		if err != nil {
-			dto.ResponseInternalServerError(ctx, err)
+			appCtx.Logger().Errorf("getObjectDownloadUrl %v", err)
+			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
 			if path != nil {
-				dto.Redirect302(ctx, *path)
+				appCtx.Logger().Infof("getObjectDownloadUrl %s", *path)
+				baseDto.Redirect302(ctx, *path)
 			} else {
-				appCtx.Logger().Warn(err.Error())
-				dto.ResponseInternalServerError(ctx, errorx.ErrServerUnknown)
+				appCtx.Logger().Errorf("getObjectDownloadUrl %v", err)
+				baseDto.ResponseInternalServerError(ctx, errorx.ErrServerUnknown)
 			}
 		}
 	}

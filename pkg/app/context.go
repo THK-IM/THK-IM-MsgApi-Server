@@ -2,17 +2,51 @@ package app
 
 import (
 	"github.com/thk-im/thk-im-base-server/conf"
-	"github.com/thk-im/thk-im-base-server/loader"
 	"github.com/thk-im/thk-im-base-server/server"
+	"github.com/thk-im/thk-im-msg-api-server/pkg/loader"
+	"github.com/thk-im/thk-im-msg-api-server/pkg/model"
 )
 
 type Context struct {
 	*server.Context
 }
 
+func (c *Context) SessionModel() model.SessionModel {
+	return c.Context.SdkMap["session"].(model.SessionModel)
+}
+
+func (c *Context) SessionMessageModel() model.SessionMessageModel {
+	return c.Context.SdkMap["session_message"].(model.SessionMessageModel)
+}
+
+func (c *Context) SessionUserModel() model.SessionUserModel {
+	return c.Context.SdkMap["session_user"].(model.SessionUserModel)
+}
+
+func (c *Context) UserMessageModel() model.UserMessageModel {
+	return c.Context.SdkMap["user_message"].(model.UserMessageModel)
+}
+
+func (c *Context) UserSessionModel() model.UserSessionModel {
+	return c.Context.SdkMap["user_session"].(model.UserSessionModel)
+}
+
+func (c *Context) ObjectModel() model.ObjectModel {
+	return c.Context.SdkMap["object"].(model.ObjectModel)
+}
+
+func (c *Context) SessionObjectModel() model.SessionObjectModel {
+	return c.Context.SdkMap["session_object"].(model.SessionObjectModel)
+}
+
+func (c *Context) UserOnlineRecordModel() model.UserOnlineRecordModel {
+	return c.Context.SdkMap["user_online_record"].(model.UserOnlineRecordModel)
+}
+
 func (c *Context) Init(config *conf.Config) {
 	c.Context = &server.Context{}
 	c.Context.Init(config)
+	c.Context.SdkMap = loader.LoadSdks(c.Config().Sdks, c.Logger())
 	err := loader.LoadTables(c.Config().Models, c.Database())
 	if err != nil {
 		panic(err)

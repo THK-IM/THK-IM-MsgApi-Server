@@ -4,11 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/event"
-	"github.com/thk-im/thk-im-base-server/rpc"
 	"github.com/thk-im/thk-im-base-server/utils"
 	"github.com/thk-im/thk-im-msg-api-server/pkg/app"
+	"github.com/thk-im/thk-im-msg-api-server/pkg/dto"
 	"time"
 )
 
@@ -40,22 +39,9 @@ func (l *UserLogic) UpdateUserOnlineStatus(req *dto.PostUserOnlineReq) error {
 	} else {
 		_, err = utils.DelKeyByValue(l.appCtx.RedisCache(), key, req.ConnId)
 	}
-	if req.IsLogin { // 登录写库登录记录
+	if req.IsLogin {
+		// 登录写库登录记录
 		err = l.appCtx.UserOnlineRecordModel().UpdateUserOnlineRecord(req.UId, req.Timestamp, req.ConnId, req.Platform)
-		go func() {
-			onlineReq := rpc.PostUserOnlineReq{
-				UserId:    req.UId,
-				IsOnline:  req.Online,
-				Timestamp: req.Timestamp,
-				ConnId:    req.ConnId,
-				Platform:  req.Platform,
-			}
-			if l.appCtx.RpcUserApi() != nil {
-				if e := l.appCtx.RpcUserApi().PostUserOnlineStatus(onlineReq); e != nil {
-					l.appCtx.Logger().Errorf("UpdateUserOnlineStatus, RpcUserApi, call err: %s", e.Error())
-				}
-			}
-		}()
 	}
 	return err
 }

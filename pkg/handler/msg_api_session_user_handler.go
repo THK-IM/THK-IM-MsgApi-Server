@@ -2,11 +2,12 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/thk-im/thk-im-base-server/dto"
+	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/middleware"
-	"github.com/thk-im/thk-im-base-server/model"
 	"github.com/thk-im/thk-im-msg-api-server/pkg/app"
+	"github.com/thk-im/thk-im-msg-api-server/pkg/dto"
 	"github.com/thk-im/thk-im-msg-api-server/pkg/logic"
+	"github.com/thk-im/thk-im-msg-api-server/pkg/model"
 	"strconv"
 )
 
@@ -15,24 +16,24 @@ func getSessionUser(appCtx *app.Context) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req dto.GetSessionUserReq
 		if err := ctx.ShouldBindQuery(&req); err != nil {
-			appCtx.Logger().Warn(err.Error())
-			dto.ResponseBadRequest(ctx)
+			appCtx.Logger().Errorf("getSessionUser %s", err.Error())
+			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		if req.Count <= 0 {
-			appCtx.Logger().Warn("param count error")
-			dto.ResponseBadRequest(ctx)
+			appCtx.Logger().Errorf("getSessionUser %v", req)
+			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		if req.Role != nil && (*req.Role > model.SessionOwner || *req.Role < model.SessionMember) {
-			appCtx.Logger().Warn("param role error")
-			dto.ResponseBadRequest(ctx)
+			appCtx.Logger().Errorf("getSessionUser %v", req)
+			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		sessionId, errSessionId := strconv.ParseInt(ctx.Param("id"), 10, 64)
 		if errSessionId != nil {
-			appCtx.Logger().Warn(errSessionId)
-			dto.ResponseBadRequest(ctx)
+			appCtx.Logger().Errorf("getSessionUser %v", errSessionId)
+			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		req.SId = sessionId
@@ -40,16 +41,17 @@ func getSessionUser(appCtx *app.Context) gin.HandlerFunc {
 		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 { // 检查角色权限
 			if hasPermission := checkReadPermission(appCtx, requestUid, sessionId); !hasPermission {
-				appCtx.Logger().Warn("permission error")
-				dto.ResponseForbidden(ctx)
+				appCtx.Logger().Errorf("getSessionUser %d %d ", requestUid, sessionId)
+				baseDto.ResponseForbidden(ctx)
 				return
 			}
 		}
 		if resp, err := l.GetUser(req); err != nil {
-			appCtx.Logger().Warn(err.Error())
-			dto.ResponseInternalServerError(ctx, err)
+			appCtx.Logger().Errorf("getSessionUser %v %v", req, err)
+			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			dto.ResponseSuccess(ctx, resp)
+			appCtx.Logger().Infof("getSessionUser %v %v", req, resp)
+			baseDto.ResponseSuccess(ctx, resp)
 		}
 	}
 }
@@ -59,38 +61,39 @@ func addSessionUser(appCtx *app.Context) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req dto.SessionAddUserReq
 		if err := ctx.ShouldBindJSON(&req); err != nil {
-			appCtx.Logger().Warn(err.Error())
-			dto.ResponseBadRequest(ctx)
+			appCtx.Logger().Errorf("addSessionUser %s", err.Error())
+			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 
 		if req.Role > model.SessionOwner || req.Role < model.SessionMember {
-			appCtx.Logger().Warn("param role error")
-			dto.ResponseBadRequest(ctx)
+			appCtx.Logger().Errorf("addSessionUser %v", req)
+			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 
 		sessionId, errSessionId := strconv.ParseInt(ctx.Param("id"), 10, 64)
 		if errSessionId != nil {
-			appCtx.Logger().Warn(errSessionId.Error())
-			dto.ResponseBadRequest(ctx)
+			appCtx.Logger().Errorf("addSessionUser %v %v", req, errSessionId)
+			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 
 		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 { // 检查角色权限
 			if hasPermission := checkPermission(appCtx, requestUid, sessionId, req.UIds); !hasPermission {
-				appCtx.Logger().Warn("permission error")
-				dto.ResponseForbidden(ctx)
+				appCtx.Logger().Errorf("addSessionUser %v", req)
+				baseDto.ResponseForbidden(ctx)
 				return
 			}
 		}
 
 		if e := l.AddUser(sessionId, req); e != nil {
-			appCtx.Logger().Warn(e.Error())
-			dto.ResponseInternalServerError(ctx, e)
+			appCtx.Logger().Errorf("addSessionUser %v %v", req, e)
+			baseDto.ResponseInternalServerError(ctx, e)
 		} else {
-			dto.ResponseSuccess(ctx, nil)
+			appCtx.Logger().Infof("addSessionUser %v", req)
+			baseDto.ResponseSuccess(ctx, nil)
 		}
 	}
 }
@@ -100,32 +103,33 @@ func deleteSessionUser(appCtx *app.Context) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req dto.SessionDelUserReq
 		if err := ctx.ShouldBindJSON(&req); err != nil {
-			appCtx.Logger().Warn(err.Error())
-			dto.ResponseBadRequest(ctx)
+			appCtx.Logger().Errorf("deleteSessionUser %s", err.Error())
+			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 
 		sessionId, errSessionId := strconv.ParseInt(ctx.Param("id"), 10, 64)
 		if errSessionId != nil {
-			appCtx.Logger().Warn(errSessionId.Error())
-			dto.ResponseBadRequest(ctx)
+			appCtx.Logger().Errorf("deleteSessionUser %s", errSessionId)
+			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 
 		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 { // 检查角色权限
 			if hasPermission := checkPermission(appCtx, requestUid, sessionId, req.UIds); !hasPermission {
-				appCtx.Logger().Warn("permission error")
-				dto.ResponseForbidden(ctx)
+				appCtx.Logger().Errorf("deleteSessionUser %d %d %v", requestUid, sessionId, req)
+				baseDto.ResponseForbidden(ctx)
 				return
 			}
 		}
 
 		if e := l.DelSessionUser(sessionId, true, req); e != nil {
-			appCtx.Logger().Warn(e.Error())
-			dto.ResponseInternalServerError(ctx, e)
+			appCtx.Logger().Errorf("deleteSessionUser %d %d %v %v", requestUid, sessionId, req, e)
+			baseDto.ResponseInternalServerError(ctx, e)
 		} else {
-			dto.ResponseSuccess(ctx, nil)
+			appCtx.Logger().Infof("deleteSessionUser %d %d %v", requestUid, sessionId, req)
+			baseDto.ResponseSuccess(ctx, nil)
 		}
 	}
 }
@@ -135,25 +139,26 @@ func updateSessionUser(appCtx *app.Context) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req dto.SessionUserUpdateReq
 		if err := ctx.ShouldBindJSON(&req); err != nil {
-			appCtx.Logger().Warn(err.Error())
-			dto.ResponseBadRequest(ctx)
+			appCtx.Logger().Errorf("updateSessionUser %s", err.Error())
+			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		if req.Mute != nil && *req.Mute != 0 && *req.Mute != 1 {
-			appCtx.Logger().Warn("param mute error")
-			dto.ResponseBadRequest(ctx)
+			appCtx.Logger().Errorf("updateSessionUser %d", *req.Mute)
+			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 
 		if req.Role != nil && (*req.Role > model.SessionOwner || *req.Role < model.SessionMember) {
-			appCtx.Logger().Warn("param role error")
-			dto.ResponseBadRequest(ctx)
+			appCtx.Logger().Errorf("updateSessionUser %v", req)
+			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 
 		sessionId, errSessionId := strconv.ParseInt(ctx.Param("id"), 10, 64)
 		if errSessionId != nil {
-			dto.ResponseBadRequest(ctx)
+			appCtx.Logger().Errorf("updateSessionUser %v", errSessionId)
+			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		req.SId = sessionId
@@ -161,24 +166,25 @@ func updateSessionUser(appCtx *app.Context) gin.HandlerFunc {
 		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 { // 检查角色权限
 			if hasPermission := checkPermission(appCtx, requestUid, sessionId, req.UIds); !hasPermission {
-				appCtx.Logger().Warn("permission error")
-				dto.ResponseForbidden(ctx)
+				appCtx.Logger().Errorf("updateSessionUser %d %d %v", requestUid, sessionId, req)
+				baseDto.ResponseForbidden(ctx)
 				return
 			}
 		}
 
 		if e := l.UpdateSessionUser(req); e != nil {
-			appCtx.Logger().Warn(e.Error())
-			dto.ResponseInternalServerError(ctx, e)
+			appCtx.Logger().Errorf("updateSessionUser %d %d %v %v", requestUid, sessionId, req, e)
+			baseDto.ResponseInternalServerError(ctx, e)
 		} else {
-			dto.ResponseSuccess(ctx, nil)
+			appCtx.Logger().Infof("updateSessionUser %d %d %v", requestUid, sessionId, req)
+			baseDto.ResponseSuccess(ctx, nil)
 		}
 	}
 }
 
 func checkReadPermission(appCtx *app.Context, uId, sessionId int64) bool {
 	if sessionUser, err := appCtx.SessionUserModel().FindSessionUser(sessionId, uId); err != nil {
-		appCtx.Logger().Error(err)
+		appCtx.Logger().Infof("checkReadPermission %d %d %v", uId, sessionId, err)
 		return false
 	} else {
 		if sessionUser.UserId > 0 {
@@ -190,7 +196,7 @@ func checkReadPermission(appCtx *app.Context, uId, sessionId int64) bool {
 
 func checkPermission(appCtx *app.Context, uId, sessionId int64, oprUIds []int64) bool {
 	if sessionUser, err := appCtx.SessionUserModel().FindSessionUser(sessionId, uId); err != nil {
-		appCtx.Logger().Error(err)
+		appCtx.Logger().Infof("checkReadPermission %d %d %v %v", uId, sessionId, oprUIds, err)
 		return false
 	} else {
 		if sessionUser.Role <= model.SessionAdmin {

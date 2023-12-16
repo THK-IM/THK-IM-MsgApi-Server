@@ -1,13 +1,29 @@
 package handler
 
 import (
+	"errors"
+	"github.com/gin-gonic/gin"
+	"github.com/thk-im/thk-im-base-server/conf"
 	"github.com/thk-im/thk-im-base-server/middleware"
 	"github.com/thk-im/thk-im-msg-api-server/pkg/app"
+	userSdk "github.com/thk-im/thk-im-user-server/pkg/sdk"
 )
 
 func RegisterMsgApiHandlers(ctx *app.Context) {
 	httpEngine := ctx.HttpEngine()
-	authMiddleware := middleware.WhiteIpAuth(ctx.Context)
+	ipAuth := middleware.WhiteIpAuth(ctx.Context)
+	userApi := ctx.UserApi()
+	userTokenAuth := userSdk.UserTokenAuth(userApi, ctx.Logger())
+
+	var authMiddleware gin.HandlerFunc
+	if ctx.Config().DeployMode == conf.DeployExposed {
+		authMiddleware = userTokenAuth
+	} else if ctx.Config().DeployMode == conf.DeployBackend {
+		authMiddleware = ipAuth
+	} else {
+		panic(errors.New("check deployMode conf"))
+	}
+
 	sessionRoute := httpEngine.Group("/session")
 	sessionRoute.Use(authMiddleware)
 	{
@@ -50,7 +66,7 @@ func RegisterMsgApiHandlers(ctx *app.Context) {
 	}
 
 	systemRoute := httpEngine.Group("/system")
-	systemRoute.Use(authMiddleware)
+	systemRoute.Use(ipAuth)
 	{
 		systemRoute.POST("/user/online", updateUserOnlineStatus(ctx)) // 更新用户在线状态
 		systemRoute.GET("/user/online", getUsersOnlineStatus(ctx))    // 获取用户上线状态

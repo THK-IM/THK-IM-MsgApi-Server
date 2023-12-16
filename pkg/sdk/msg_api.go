@@ -44,6 +44,7 @@ func (d defaultMsgApi) CreateSession(req *dto.CreateSessionReq) (*dto.CreateSess
 		SetBody(dataBytes).
 		Post(url)
 	if errRequest != nil {
+		d.logger.Errorf("CreateSession: %v %v", req, errRequest)
 		return nil, errRequest
 	}
 	if res.StatusCode() != http.StatusOK {

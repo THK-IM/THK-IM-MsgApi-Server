@@ -3,9 +3,9 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
-	"github.com/thk-im/thk-im-msg-api-server/pkg/app"
-	"github.com/thk-im/thk-im-msg-api-server/pkg/dto"
-	"github.com/thk-im/thk-im-msg-api-server/pkg/logic"
+	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
+	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
+	"github.com/thk-im/thk-im-msgapi-server/pkg/logic"
 )
 
 func updateUserOnlineStatus(appCtx *app.Context) gin.HandlerFunc {

@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/thk-im/thk-im-base-server/conf"
-	"github.com/thk-im/thk-im-msg-api-server/pkg/app"
-	"github.com/thk-im/thk-im-msg-api-server/pkg/handler"
+	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
+	"github.com/thk-im/thk-im-msgapi-server/pkg/handler"
 )
 
 func main() {

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/thk-im/thk-im-base-server/event"
 	"github.com/thk-im/thk-im-base-server/utils"
-	"github.com/thk-im/thk-im-msg-api-server/pkg/app"
-	"github.com/thk-im/thk-im-msg-api-server/pkg/dto"
+	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
+	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"time"
 )
 

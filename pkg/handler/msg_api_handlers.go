@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/thk-im/thk-im-base-server/conf"
 	"github.com/thk-im/thk-im-base-server/middleware"
-	"github.com/thk-im/thk-im-msg-api-server/pkg/app"
+	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
 	userSdk "github.com/thk-im/thk-im-user-server/pkg/sdk"
 )
 

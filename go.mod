@@ -1,4 +1,4 @@
-module github.com/thk-im/thk-im-msg-api-server
+module github.com/thk-im/thk-im-msgapi-server
 
 go 1.19
 

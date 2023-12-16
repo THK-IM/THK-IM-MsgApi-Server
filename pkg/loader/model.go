@@ -5,7 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/thk-im/thk-im-base-server/conf"
 	"github.com/thk-im/thk-im-base-server/snowflake"
-	"github.com/thk-im/thk-im-msg-api-server/pkg/model"
+	"github.com/thk-im/thk-im-msgapi-server/pkg/model"
 	"gorm.io/gorm"
 	"os"
 )

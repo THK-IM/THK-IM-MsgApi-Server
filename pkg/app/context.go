@@ -3,8 +3,8 @@ package app
 import (
 	"github.com/thk-im/thk-im-base-server/conf"
 	"github.com/thk-im/thk-im-base-server/server"
-	"github.com/thk-im/thk-im-msg-api-server/pkg/loader"
-	"github.com/thk-im/thk-im-msg-api-server/pkg/model"
+	"github.com/thk-im/thk-im-msgapi-server/pkg/loader"
+	"github.com/thk-im/thk-im-msgapi-server/pkg/model"
 	userSdk "github.com/thk-im/thk-im-user-server/pkg/sdk"
 )
 

@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/thk-im/thk-im-base-server/conf"
 	"github.com/thk-im/thk-im-base-server/errorx"
-	"github.com/thk-im/thk-im-msg-api-server/pkg/dto"
+	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"net/http"
 	"time"
 )

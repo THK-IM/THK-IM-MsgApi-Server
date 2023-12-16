@@ -2,9 +2,9 @@ package logic
 
 import (
 	"fmt"
-	"github.com/thk-im/thk-im-msg-api-server/pkg/dto"
-	"github.com/thk-im/thk-im-msg-api-server/pkg/errorx"
-	"github.com/thk-im/thk-im-msg-api-server/pkg/model"
+	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
+	"github.com/thk-im/thk-im-msgapi-server/pkg/errorx"
+	"github.com/thk-im/thk-im-msgapi-server/pkg/model"
 )
 
 func (l *SessionLogic) GetUser(req dto.GetSessionUserReq) (*dto.GetSessionUserRes, error) {

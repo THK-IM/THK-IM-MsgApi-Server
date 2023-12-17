@@ -3,9 +3,9 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
+	baseErrorx "github.com/thk-im/thk-im-base-server/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
-	"github.com/thk-im/thk-im-msgapi-server/pkg/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/logic"
 	userSdk "github.com/thk-im/thk-im-user-server/pkg/sdk"
 )
@@ -59,8 +59,8 @@ func getObjectDownloadUrl(appCtx *app.Context) gin.HandlerFunc {
 				appCtx.Logger().Infof("getObjectDownloadUrl %s", *path)
 				baseDto.Redirect302(ctx, *path)
 			} else {
-				appCtx.Logger().Errorf("getObjectDownloadUrl %v", err)
-				baseDto.ResponseInternalServerError(ctx, errorx.ErrServerUnknown)
+				appCtx.Logger().Errorf("getObjectDownloadUrl %s", "path is nil")
+				baseDto.ResponseInternalServerError(ctx, baseErrorx.ErrInternalServerError)
 			}
 		}
 	}

@@ -2,6 +2,7 @@ package logic
 
 import (
 	"fmt"
+	baseErrorx "github.com/thk-im/thk-im-base-server/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/model"
@@ -36,7 +37,7 @@ func (l *SessionLogic) AddSessionUser(sid int64, req dto.SessionAddUserReq) erro
 	locker := l.appCtx.NewLocker(lockKey, 1000, 1000)
 	success, lockErr := locker.Lock()
 	if lockErr != nil || !success {
-		return errorx.ErrServerBusy
+		return baseErrorx.ErrServerBusy
 	}
 	defer func() {
 		if success, lockErr = locker.Release(); lockErr != nil {
@@ -70,7 +71,7 @@ func (l *SessionLogic) DelSessionUser(sid int64, deleteMsg bool, req dto.Session
 	locker := l.appCtx.NewLocker(lockKey, 1000, 1000)
 	success, lockErr := locker.Lock()
 	if lockErr != nil || !success {
-		return errorx.ErrServerBusy
+		return baseErrorx.ErrServerBusy
 	}
 	defer func() {
 		if success, lockErr = locker.Release(); lockErr != nil {
@@ -97,7 +98,7 @@ func (l *SessionLogic) UpdateSessionUser(req dto.SessionUserUpdateReq) (err erro
 	locker := l.appCtx.NewLocker(lockKey, 1000, 1000)
 	success, lockErr := locker.Lock()
 	if lockErr != nil || !success {
-		return errorx.ErrServerBusy
+		return baseErrorx.ErrServerBusy
 	}
 	defer func() {
 		if success, lockErr = locker.Release(); lockErr != nil {
@@ -114,7 +115,7 @@ func (l *SessionLogic) UpdateSessionUser(req dto.SessionUserUpdateReq) (err erro
 		sql := "mute | 2"
 		mute = &sql
 	} else {
-		return errorx.ErrParamsError
+		return baseErrorx.ErrParamsError
 	}
 	err = l.appCtx.SessionUserModel().UpdateUser(req.SId, req.UIds, req.Role, nil, mute)
 	return err

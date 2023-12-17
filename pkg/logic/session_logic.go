@@ -2,6 +2,7 @@ package logic
 
 import (
 	"fmt"
+	baseErrorx "github.com/thk-im/thk-im-base-server/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/errorx"
@@ -23,7 +24,7 @@ func (l *SessionLogic) CreateSession(req dto.CreateSessionReq) (*dto.CreateSessi
 	locker := l.appCtx.NewLocker(lockKey, 1000, 1000)
 	success, lockErr := locker.Lock()
 	if lockErr != nil || !success {
-		return nil, errorx.ErrServerBusy
+		return nil, baseErrorx.ErrServerBusy
 	}
 	defer func() {
 		if success, lockErr = locker.Release(); lockErr != nil {
@@ -33,7 +34,7 @@ func (l *SessionLogic) CreateSession(req dto.CreateSessionReq) (*dto.CreateSessi
 
 	if req.Type == model.SingleSessionType {
 		if len(req.Members) > 0 {
-			return nil, errorx.ErrParamsError
+			return nil, baseErrorx.ErrParamsError
 		}
 		userSession, err := l.appCtx.UserSessionModel().FindUserSessionByEntityId(req.UId, req.EntityId, req.Type, true)
 		if err != nil {
@@ -79,10 +80,23 @@ func (l *SessionLogic) CreateSession(req dto.CreateSessionReq) (*dto.CreateSessi
 		if userSession.UserId > 0 {
 			// 群删除后不能恢复
 			if userSession.Deleted == 1 {
-				return nil, errorx.ErrGroupAlreadyDeleted
-			} else {
-				return nil, errorx.ErrGroupAlreadyCreated
+				return nil, errorx.ErrSessionAlreadyDeleted
 			}
+			return &dto.CreateSessionRes{
+				SId:      userSession.SessionId,
+				EntityId: userSession.EntityId,
+				ParentId: userSession.ParentId,
+				Type:     userSession.Type,
+				Name:     userSession.Name,
+				Remark:   userSession.Remark,
+				Role:     userSession.Role,
+				Mute:     userSession.Mute,
+				CTime:    userSession.CreateTime,
+				MTime:    userSession.UpdateTime,
+				Status:   userSession.Status,
+				Top:      userSession.Top,
+				IsNew:    false,
+			}, nil
 		}
 	} else {
 		return nil, errorx.ErrSessionType
@@ -107,7 +121,7 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 		}
 	} else if req.Type == model.GroupSessionType || req.Type == model.SuperGroupSessionType {
 		if req.EntityId <= 0 {
-			err = errorx.ErrParamsError
+			err = baseErrorx.ErrParamsError
 			return nil, err
 		}
 		members := make([]int64, 0)
@@ -133,7 +147,7 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 			userSession = userSessions[0]
 		}
 	} else {
-		err = errorx.ErrParamsError
+		err = baseErrorx.ErrParamsError
 		return nil, err
 	}
 
@@ -160,7 +174,7 @@ func (l *SessionLogic) UpdateSession(req dto.UpdateSessionReq) error {
 	locker := l.appCtx.NewLocker(lockKey, 1000, 1000)
 	success, lockErr := locker.Lock()
 	if lockErr != nil || !success {
-		return errorx.ErrServerBusy
+		return baseErrorx.ErrServerBusy
 	}
 	defer func() {
 		if success, lockErr = locker.Release(); lockErr != nil {
@@ -197,7 +211,7 @@ func (l *SessionLogic) UpdateUserSession(req dto.UpdateUserSessionReq) (err erro
 	locker := l.appCtx.NewLocker(lockKey, 1000, 1000)
 	success, lockErr := locker.Lock()
 	if lockErr != nil || !success {
-		return errorx.ErrServerBusy
+		return baseErrorx.ErrServerBusy
 	}
 	defer func() {
 		if success, lockErr = locker.Release(); lockErr != nil {

@@ -2,9 +2,9 @@ package logic
 
 import (
 	"fmt"
+	baseErrorx "github.com/thk-im/thk-im-base-server/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
-	"github.com/thk-im/thk-im-msgapi-server/pkg/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/model"
 )
 
@@ -26,7 +26,7 @@ func (l *SessionObjectLogic) GetUploadParams(req dto.GetUploadParamsReq) (*dto.G
 	// 鉴权
 	su, errSu := l.appCtx.SessionUserModel().FindSessionUser(req.SId, req.UId)
 	if errSu != nil || su.UserId <= 0 {
-		return nil, errorx.ErrPermission
+		return nil, baseErrorx.ErrPermission
 	}
 	uploadKey := fmt.Sprintf("session-%d/%d/%d-%s", req.SId, req.UId, req.ClientId, req.FName)
 	uploadUrl, uploadMethod, params, err := l.appCtx.ObjectStorage().GetUploadParams(uploadKey)
@@ -67,7 +67,7 @@ func (l *SessionObjectLogic) GetObjectByKey(req dto.GetDownloadUrlReq) (*string,
 	}
 
 	if err != nil || object.Id == 0 {
-		return nil, errorx.ErrParamsError
+		return nil, baseErrorx.ErrParamsError
 	}
 	return l.appCtx.ObjectStorage().GetDownloadUrl(object.Key)
 }

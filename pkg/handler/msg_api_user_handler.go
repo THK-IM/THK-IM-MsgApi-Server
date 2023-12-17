@@ -28,21 +28,21 @@ func updateUserOnlineStatus(appCtx *app.Context) gin.HandlerFunc {
 	}
 }
 
-func getUsersOnlineStatus(appCtx *app.Context) gin.HandlerFunc {
+func queryUserOnlineStatus(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewUserLogic(appCtx)
 	return func(ctx *gin.Context) {
-		var req dto.GetUsersOnlineStatusReq
+		var req dto.QueryUsersOnlineStatusReq
 		if err := ctx.ShouldBindJSON(&req); err != nil {
-			appCtx.Logger().Errorf("getUsersOnlineStatus %v", err)
+			appCtx.Logger().Errorf("queryUsersOnlineStatus %v", err)
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 
 		if res, err := l.GetUsersOnlineStatus(req.UIds); err != nil {
-			appCtx.Logger().Errorf("getUsersOnlineStatus %v %v", req, err)
+			appCtx.Logger().Errorf("queryUsersOnlineStatus %v %v", req, err)
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			appCtx.Logger().Infof("getUsersOnlineStatus %v %v", req, res)
+			appCtx.Logger().Infof("queryUsersOnlineStatus %v %v", req, res)
 			baseDto.ResponseSuccess(ctx, res)
 		}
 	}

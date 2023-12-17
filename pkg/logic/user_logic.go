@@ -46,7 +46,7 @@ func (l *UserLogic) UpdateUserOnlineStatus(req *dto.PostUserOnlineReq) error {
 	return err
 }
 
-func (l *UserLogic) GetUsersOnlineStatus(uIds []int64) (*dto.GetUsersOnlineStatusRes, error) {
+func (l *UserLogic) GetUsersOnlineStatus(uIds []int64) (*dto.QueryUsersOnlineStatusRes, error) {
 	uidOnlineKeys := make([]string, 0)
 	for _, uid := range uIds {
 		uidOnlineKey := fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, uid)
@@ -69,7 +69,7 @@ func (l *UserLogic) GetUsersOnlineStatus(uIds []int64) (*dto.GetUsersOnlineStatu
 			}
 		}
 	}
-	return &dto.GetUsersOnlineStatusRes{UsersOnlineStatus: dtoUsersOnlineStatus}, nil
+	return &dto.QueryUsersOnlineStatusRes{UsersOnlineStatus: dtoUsersOnlineStatus}, nil
 }
 
 func (l *UserLogic) KickUser(req *dto.KickUserReq) error {

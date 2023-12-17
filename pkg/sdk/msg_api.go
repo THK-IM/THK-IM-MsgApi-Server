@@ -14,7 +14,15 @@ const (
 )
 
 type (
-	MsgApi interface {
+	SystemApi interface {
+		PushExtendedMessage(req *dto.PushMessageReq) (*dto.PushMessageRes, error)
+		SendSystemMessage(req *dto.SendMessageReq) (*dto.SendMessageRes, error)
+		KickOffUser(req *dto.KickUserReq) error
+		QueryUsersOnlineStatus(req *dto.QueryUsersOnlineStatusReq) (*dto.QueryUsersOnlineStatusRes, error)
+		PostUserOnlineStatus(req *dto.PostUserOnlineReq) error
+	}
+
+	SessionApi interface {
 		UpdateSession(sessionId int64, req *dto.UpdateSessionReq) error
 		QuerySessionUsers(sessionId int64, req *dto.QuerySessionUsersReq) (*dto.QuerySessionUsersRes, error)
 		QuerySessionUser(sessionId, userId int64) (*dto.SessionUser, error)
@@ -22,7 +30,11 @@ type (
 		DelSessionUser(sessionId int64, req *dto.SessionDelUserReq) error
 		AddSessionUser(sessionId int64, req *dto.SessionAddUserReq) error
 		CreateSession(req *dto.CreateSessionReq) (*dto.CreateSessionRes, error)
-		PostUserOnlineStatus(req *dto.PostUserOnlineReq) error
+	}
+
+	MsgApi interface {
+		SystemApi
+		SessionApi
 	}
 
 	defaultMsgApi struct {

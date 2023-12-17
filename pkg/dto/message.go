@@ -64,9 +64,9 @@ type SendMessageReq struct {
 	CId       int64   `json:"c_id" binding:"required"`
 	SId       int64   `json:"s_id" binding:"required"`
 	Type      int     `json:"type" binding:"required"`
-	FUid      int64   `json:"f_u_id"`
 	CTime     int64   `json:"c_time" binding:"required"`
 	Body      string  `json:"body" binding:"required"`
+	FUid      int64   `json:"f_u_id,omitempty"`
 	RMsgId    *int64  `json:"r_msg_id,omitempty"`
 	AtUsers   *string `json:"at_users,omitempty"`
 	Receivers []int64 `json:"receivers,omitempty"`

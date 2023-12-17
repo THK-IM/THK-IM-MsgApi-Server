@@ -10,7 +10,7 @@ type PostUserOnlineReq struct {
 	Timestamp int64  `json:"timestamp" binding:"required"`
 }
 
-type GetUsersOnlineStatusReq struct {
+type QueryUsersOnlineStatusReq struct {
 	UIds []int64 `json:"u_ids" form:"u_ids"`
 }
 
@@ -20,6 +20,6 @@ type UserOnlineStatus struct {
 	Platform       string `json:"platform"`
 }
 
-type GetUsersOnlineStatusRes struct {
+type QueryUsersOnlineStatusRes struct {
 	UsersOnlineStatus []*UserOnlineStatus `json:"data"`
 }

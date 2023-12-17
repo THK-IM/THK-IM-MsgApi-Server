@@ -58,6 +58,10 @@ func (d defaultMsgApi) QuerySessionUsers(sessionId int64, req *dto.QuerySessionU
 			return nil, errRes
 		}
 	} else {
+		if res.Body() == nil || len(res.Body()) == 0 {
+			d.logger.Info("QuerySessionUsers: %v %s", req, "Body is nil")
+			return nil, nil
+		}
 		resp := &dto.QuerySessionUsersRes{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {

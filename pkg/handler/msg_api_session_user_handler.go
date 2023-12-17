@@ -11,32 +11,67 @@ import (
 	"strconv"
 )
 
-func getSessionUser(appCtx *app.Context) gin.HandlerFunc {
+func getSessionUsers(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionLogic(appCtx)
 	return func(ctx *gin.Context) {
-		var req dto.GetSessionUserReq
+		var req dto.QuerySessionUsersReq
 		if err := ctx.ShouldBindQuery(&req); err != nil {
-			appCtx.Logger().Errorf("getSessionUser %s", err.Error())
+			appCtx.Logger().Errorf("getSessionUsers %s", err.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		if req.Count <= 0 {
-			appCtx.Logger().Errorf("getSessionUser %v", req)
+			appCtx.Logger().Errorf("getSessionUsers %v", req)
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		if req.Role != nil && (*req.Role > model.SessionOwner || *req.Role < model.SessionMember) {
-			appCtx.Logger().Errorf("getSessionUser %v", req)
+			appCtx.Logger().Errorf("getSessionUsers %v", req)
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
+		sessionId, errSessionId := strconv.ParseInt(ctx.Param("id"), 10, 64)
+		if errSessionId != nil {
+			appCtx.Logger().Errorf("getSessionUsers %v", errSessionId)
+			baseDto.ResponseBadRequest(ctx)
+			return
+		}
+		req.SId = sessionId
+
+		requestUid := ctx.GetInt64(middleware.UidKey)
+		if requestUid > 0 { // 检查角色权限
+			if hasPermission := checkReadPermission(appCtx, requestUid, sessionId); !hasPermission {
+				appCtx.Logger().Errorf("getSessionUsers %d %d ", requestUid, sessionId)
+				baseDto.ResponseForbidden(ctx)
+				return
+			}
+		}
+		if resp, err := l.QuerySessionUsers(req); err != nil {
+			appCtx.Logger().Errorf("getSessionUsers %v %v", req, err)
+			baseDto.ResponseInternalServerError(ctx, err)
+		} else {
+			appCtx.Logger().Infof("getSessionUsers %v %v", req, resp)
+			baseDto.ResponseSuccess(ctx, resp)
+		}
+	}
+}
+
+func getSessionUser(appCtx *app.Context) gin.HandlerFunc {
+	l := logic.NewSessionLogic(appCtx)
+	return func(ctx *gin.Context) {
 		sessionId, errSessionId := strconv.ParseInt(ctx.Param("id"), 10, 64)
 		if errSessionId != nil {
 			appCtx.Logger().Errorf("getSessionUser %v", errSessionId)
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
-		req.SId = sessionId
+
+		userId, errUserId := strconv.ParseInt(ctx.Param("uid"), 10, 64)
+		if errUserId != nil {
+			appCtx.Logger().Errorf("getSessionUser %v", errSessionId)
+			baseDto.ResponseBadRequest(ctx)
+			return
+		}
 
 		requestUid := ctx.GetInt64(middleware.UidKey)
 		if requestUid > 0 { // 检查角色权限
@@ -46,11 +81,11 @@ func getSessionUser(appCtx *app.Context) gin.HandlerFunc {
 				return
 			}
 		}
-		if resp, err := l.GetUser(req); err != nil {
-			appCtx.Logger().Errorf("getSessionUser %v %v", req, err)
+		if resp, err := l.QuerySessionUser(sessionId, userId); err != nil {
+			appCtx.Logger().Errorf("getSessionUser %d %d %v", sessionId, userId, err)
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			appCtx.Logger().Infof("getSessionUser %v %v", req, resp)
+			appCtx.Logger().Infof("getSessionUser %d %d %v", sessionId, userId, resp)
 			baseDto.ResponseSuccess(ctx, resp)
 		}
 	}
@@ -88,7 +123,7 @@ func addSessionUser(appCtx *app.Context) gin.HandlerFunc {
 			}
 		}
 
-		if e := l.AddUser(sessionId, req); e != nil {
+		if e := l.AddSessionUser(sessionId, req); e != nil {
 			appCtx.Logger().Errorf("addSessionUser %v %v", req, e)
 			baseDto.ResponseInternalServerError(ctx, e)
 		} else {

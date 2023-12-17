@@ -15,6 +15,10 @@ const (
 
 type (
 	MsgApi interface {
+		UpdateSession(sessionId int64, req *dto.UpdateSessionReq) error
+		QuerySessionUsers(sessionId int64, req *dto.QuerySessionUsersReq) (*dto.QuerySessionUsersRes, error)
+		QuerySessionUser(sessionId, userId int64) (*dto.SessionUser, error)
+		UpdateSessionUser(sessionId int64, req *dto.SessionUserUpdateReq) error
 		DelSessionUser(sessionId int64, req *dto.SessionDelUserReq) error
 		AddSessionUser(sessionId int64, req *dto.SessionAddUserReq) error
 		CreateSession(req *dto.CreateSessionReq) (*dto.CreateSessionRes, error)

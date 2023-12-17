@@ -80,14 +80,14 @@ type GetUserSessionsRes struct {
 	Data []*UserSession `json:"data"`
 }
 
-type GetSessionUserReq struct {
+type QuerySessionUsersReq struct {
 	SId   int64 `json:"s_id" form:"s_id"`
 	Role  *int  `json:"role" form:"role"`
 	MTime int64 `json:"m_time" form:"m_time"`
 	Count int   `json:"count" form:"count"`
 }
 
-type GetSessionUserRes struct {
+type QuerySessionUsersRes struct {
 	Data []*SessionUser `json:"data"`
 }
 

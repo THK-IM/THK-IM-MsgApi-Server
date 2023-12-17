@@ -7,7 +7,7 @@ import (
 	"github.com/thk-im/thk-im-msgapi-server/pkg/model"
 )
 
-func (l *SessionLogic) GetUser(req dto.GetSessionUserReq) (*dto.GetSessionUserRes, error) {
+func (l *SessionLogic) QuerySessionUsers(req dto.QuerySessionUsersReq) (*dto.QuerySessionUsersRes, error) {
 	sessionUser, err := l.appCtx.SessionUserModel().FindSessionUsersByMTime(req.SId, req.MTime, req.Role, req.Count)
 	if err != nil {
 		return nil, err
@@ -17,10 +17,21 @@ func (l *SessionLogic) GetUser(req dto.GetSessionUserReq) (*dto.GetSessionUserRe
 		dtoSu := l.convSessionUser(su)
 		dtoSessionUsers = append(dtoSessionUsers, dtoSu)
 	}
-	return &dto.GetSessionUserRes{Data: dtoSessionUsers}, nil
+	return &dto.QuerySessionUsersRes{Data: dtoSessionUsers}, nil
 }
 
-func (l *SessionLogic) AddUser(sid int64, req dto.SessionAddUserReq) error {
+func (l *SessionLogic) QuerySessionUser(sessionId, userId int64) (*dto.SessionUser, error) {
+	sessionUser, err := l.appCtx.SessionUserModel().FindSessionUser(sessionId, userId)
+	if err != nil {
+		return nil, err
+	}
+	if sessionUser.UserId == 0 {
+		return nil, nil
+	}
+	return l.convSessionUser(sessionUser), nil
+}
+
+func (l *SessionLogic) AddSessionUser(sid int64, req dto.SessionAddUserReq) error {
 	lockKey := fmt.Sprintf(sessionUpdateLockKey, l.appCtx.Config().Name, sid)
 	locker := l.appCtx.NewLocker(lockKey, 1000, 1000)
 	success, lockErr := locker.Lock()

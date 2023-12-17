@@ -6,7 +6,6 @@ import (
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/model"
-	"gorm.io/gorm"
 )
 
 type SessionLogic struct {
@@ -37,7 +36,7 @@ func (l *SessionLogic) CreateSession(req dto.CreateSessionReq) (*dto.CreateSessi
 			return nil, errorx.ErrParamsError
 		}
 		userSession, err := l.appCtx.UserSessionModel().FindUserSessionByEntityId(req.UId, req.EntityId, req.Type, true)
-		if err != nil && err != gorm.ErrRecordNotFound {
+		if err != nil {
 			return nil, err
 		}
 		// 如果session已经存在
@@ -73,7 +72,7 @@ func (l *SessionLogic) CreateSession(req dto.CreateSessionReq) (*dto.CreateSessi
 		}
 	} else if req.Type == model.GroupSessionType || req.Type == model.SuperGroupSessionType {
 		userSession, err := l.appCtx.UserSessionModel().FindUserSessionByEntityId(req.UId, req.EntityId, req.Type, true)
-		if err != nil && err != gorm.ErrRecordNotFound {
+		if err != nil {
 			return nil, err
 		}
 		// 如果session已经存在
@@ -111,13 +110,16 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 			err = errorx.ErrParamsError
 			return nil, err
 		}
+		members := make([]int64, 0)
 		entityIds := make([]int64, 0)
 		roles := make([]int, 0)
 		// 插入自己的角色和entity_id
+		members = append(members, req.UId)
 		entityIds = append(entityIds, req.EntityId)
 		roles = append(roles, model.SessionOwner)
 		// 插入群成员的角色和entity_id
-		for range req.Members {
+		for _, m := range req.Members {
+			members = append(members, m)
 			entityIds = append(entityIds, req.EntityId)
 			roles = append(roles, model.SessionMember)
 		}
@@ -125,7 +127,7 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 		if req.Type == model.GroupSessionType {
 			maxMember = l.appCtx.Config().IM.MaxGroupMember
 		}
-		if userSessions, errUserSessions := l.appCtx.SessionUserModel().AddUser(session, entityIds, req.Members, roles, maxMember); err != nil {
+		if userSessions, errUserSessions := l.appCtx.SessionUserModel().AddUser(session, entityIds, members, roles, maxMember); err != nil {
 			return nil, errUserSessions
 		} else {
 			userSession = userSessions[0]

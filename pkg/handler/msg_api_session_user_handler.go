@@ -3,11 +3,11 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
-	"github.com/thk-im/thk-im-base-server/middleware"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/logic"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/model"
+	userSdk "github.com/thk-im/thk-im-user-server/pkg/sdk"
 	"strconv"
 )
 
@@ -38,7 +38,7 @@ func getSessionUsers(appCtx *app.Context) gin.HandlerFunc {
 		}
 		req.SId = sessionId
 
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 { // 检查角色权限
 			if hasPermission := checkReadPermission(appCtx, requestUid, sessionId); !hasPermission {
 				appCtx.Logger().Errorf("getSessionUsers %d %d ", requestUid, sessionId)
@@ -73,7 +73,7 @@ func getSessionUser(appCtx *app.Context) gin.HandlerFunc {
 			return
 		}
 
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 { // 检查角色权限
 			if hasPermission := checkReadPermission(appCtx, requestUid, sessionId); !hasPermission {
 				appCtx.Logger().Errorf("getSessionUser %d %d ", requestUid, sessionId)
@@ -114,7 +114,7 @@ func addSessionUser(appCtx *app.Context) gin.HandlerFunc {
 			return
 		}
 
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 { // 检查角色权限
 			if hasPermission := checkPermission(appCtx, requestUid, sessionId, req.UIds); !hasPermission {
 				appCtx.Logger().Errorf("addSessionUser %v", req)
@@ -150,7 +150,7 @@ func deleteSessionUser(appCtx *app.Context) gin.HandlerFunc {
 			return
 		}
 
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 { // 检查角色权限
 			if hasPermission := checkPermission(appCtx, requestUid, sessionId, req.UIds); !hasPermission {
 				appCtx.Logger().Errorf("deleteSessionUser %d %d %v", requestUid, sessionId, req)
@@ -198,7 +198,7 @@ func updateSessionUser(appCtx *app.Context) gin.HandlerFunc {
 		}
 		req.SId = sessionId
 
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 { // 检查角色权限
 			if hasPermission := checkPermission(appCtx, requestUid, sessionId, req.UIds); !hasPermission {
 				appCtx.Logger().Errorf("updateSessionUser %d %d %v", requestUid, sessionId, req)

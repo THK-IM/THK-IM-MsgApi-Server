@@ -3,10 +3,10 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
-	"github.com/thk-im/thk-im-base-server/middleware"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/logic"
+	userSdk "github.com/thk-im/thk-im-user-server/pkg/sdk"
 )
 
 func ackUserMessages(appCtx *app.Context) gin.HandlerFunc {
@@ -23,7 +23,7 @@ func ackUserMessages(appCtx *app.Context) gin.HandlerFunc {
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
 			appCtx.Logger().Errorf("ackUserMessages %d %d", requestUid, req.UId)
 			baseDto.ResponseForbidden(ctx)
@@ -48,7 +48,7 @@ func readUserMessage(appCtx *app.Context) gin.HandlerFunc {
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
 			appCtx.Logger().Errorf("readUserMessage %d %d", requestUid, req.UId)
 			baseDto.ResponseBadRequest(ctx)
@@ -73,7 +73,7 @@ func revokeUserMessage(appCtx *app.Context) gin.HandlerFunc {
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
 			appCtx.Logger().Errorf("revokeUserMessage %d %d", requestUid, req.UId)
 			baseDto.ResponseForbidden(ctx)
@@ -98,7 +98,7 @@ func reeditUserMessage(appCtx *app.Context) gin.HandlerFunc {
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
 			appCtx.Logger().Errorf("reeditUserMessage %d %d", requestUid, req.UId)
 			baseDto.ResponseForbidden(ctx)
@@ -123,7 +123,7 @@ func forwardUserMessage(appCtx *app.Context) gin.HandlerFunc {
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 && requestUid != req.FUid {
 			appCtx.Logger().Errorf("forwardUserMessage %d %d", requestUid, req.FUid)
 			baseDto.ResponseForbidden(ctx)

@@ -3,11 +3,11 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
-	"github.com/thk-im/thk-im-base-server/middleware"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/logic"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/model"
+	userSdk "github.com/thk-im/thk-im-user-server/pkg/sdk"
 	"strconv"
 )
 
@@ -39,7 +39,7 @@ func createSession(appCtx *app.Context) gin.HandlerFunc {
 			}
 		}
 
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 {
 			if requestUid != req.Members[0] {
 				appCtx.Logger().Errorf("createSession %d %d", requestUid, req.Members[0])
@@ -81,7 +81,7 @@ func updateSession(appCtx *app.Context) gin.HandlerFunc {
 		} else {
 			req.Id = int64(id)
 		}
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 {
 			if sessionUser, err := appCtx.SessionUserModel().FindSessionUser(req.Id, requestUid); err != nil {
 				baseDto.ResponseForbidden(ctx)
@@ -119,7 +119,7 @@ func updateUserSession(appCtx *app.Context) gin.HandlerFunc {
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
 			appCtx.Logger().Errorf("updateUserSession %d %d", requestUid, req.UId)
 			baseDto.ResponseForbidden(ctx)
@@ -145,7 +145,7 @@ func getUserSessions(appCtx *app.Context) gin.HandlerFunc {
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
 			appCtx.Logger().Errorf("getUserSessions %d %d", requestUid, req.UId)
 			baseDto.ResponseForbidden(ctx)
@@ -183,7 +183,7 @@ func getUserSession(appCtx *app.Context) gin.HandlerFunc {
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 && requestUid != iUid {
 			appCtx.Logger().Errorf("getUserSession %d %d", requestUid, iUid)
 			baseDto.ResponseForbidden(ctx)
@@ -212,7 +212,7 @@ func getSessionMessages(appCtx *app.Context) gin.HandlerFunc {
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 {
 			if _, err := appCtx.SessionUserModel().FindSessionUser(iSessionId, requestUid); err != nil {
 				appCtx.Logger().Errorf("getSessionMessages %s", err.Error())
@@ -255,7 +255,7 @@ func deleteSessionMessage(appCtx *app.Context) gin.HandlerFunc {
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 {
 			if sessionUser, err := appCtx.SessionUserModel().FindSessionUser(iSessionId, requestUid); err != nil {
 				appCtx.Logger().Errorf("deleteSessionMessage %s", err.Error())
@@ -301,7 +301,7 @@ func deleteUserSession(appCtx *app.Context) gin.HandlerFunc {
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 && requestUid != iUid {
 			appCtx.Logger().Errorf("deleteUserSession %d %d", requestUid, iUid)
 			baseDto.ResponseForbidden(ctx)

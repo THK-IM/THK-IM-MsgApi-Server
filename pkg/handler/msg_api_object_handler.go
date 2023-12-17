@@ -3,11 +3,11 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
-	"github.com/thk-im/thk-im-base-server/middleware"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/logic"
+	userSdk "github.com/thk-im/thk-im-user-server/pkg/sdk"
 )
 
 func getObjectUploadParams(appCtx *app.Context) gin.HandlerFunc {
@@ -19,7 +19,7 @@ func getObjectUploadParams(appCtx *app.Context) gin.HandlerFunc {
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
 			appCtx.Logger().Errorf("getObjectUploadParams %v %d", req, requestUid)
 			baseDto.ResponseForbidden(ctx)
@@ -47,7 +47,7 @@ func getObjectDownloadUrl(appCtx *app.Context) gin.HandlerFunc {
 			return
 		}
 
-		requestUid := ctx.GetInt64(middleware.UidKey)
+		requestUid := ctx.GetInt64(userSdk.UidKey)
 		req.UId = requestUid
 
 		path, err := l.GetObjectByKey(req)

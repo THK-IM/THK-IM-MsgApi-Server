@@ -287,7 +287,7 @@ func (d defaultSessionUserModel) DelSession(sessionId int64) (err error) {
 	for _, su := range sessionUser {
 		tableName = d.genUserSessionTableName(su.UserId)
 		if su.Deleted == 0 {
-			sqlStr = fmt.Sprintf("update %s set deleted = 1 and update_time = ? where session_id = ? and user_id = ? ", tableName)
+			sqlStr = fmt.Sprintf("update %s set deleted = 1, update_time = ? where session_id = ? and user_id = ? ", tableName)
 			err = tx.Exec(sqlStr, now, su.SessionId, su.UserId).Error
 			if err != nil {
 				return err
@@ -296,14 +296,14 @@ func (d defaultSessionUserModel) DelSession(sessionId int64) (err error) {
 	}
 
 	tableName = d.genUserSessionTableName(sessionId)
-	sqlStr = fmt.Sprintf("update %s set deleted = 1 and update_time = ? where session_id = ?", tableName)
+	sqlStr = fmt.Sprintf("update %s set deleted = 1, update_time = ? where session_id = ?", tableName)
 	err = tx.Exec(sqlStr, now, sessionId).Error
 	if err != nil {
 		return err
 	}
 
 	tableName = d.genSessionTableName(sessionId)
-	sqlStr = fmt.Sprintf("update %s set deleted = 1 and update_time = ? where session_id = ?", tableName)
+	sqlStr = fmt.Sprintf("update %s set deleted = 1, update_time = ? where session_id = ?", tableName)
 	err = tx.Exec(sqlStr, now, sessionId).Error
 	return
 }

@@ -29,6 +29,7 @@ func RegisterMsgApiHandlers(appCtx *app.Context) {
 	{
 		sessionRoute.POST("", createSession(appCtx))                      // 创建/获取session
 		sessionRoute.PUT("/:id", updateSession(appCtx))                   // 修改session相关信息
+		sessionRoute.DELETE("/:id", deleteSession(appCtx))                // 删除session
 		sessionRoute.GET("/:id/user", getSessionUsers(appCtx))            // 会话成员查询
 		sessionRoute.GET("/:id/user/:uid", getSessionUser(appCtx))        // 会话成员查询
 		sessionRoute.POST("/:id/user", addSessionUser(appCtx))            // 会话增员

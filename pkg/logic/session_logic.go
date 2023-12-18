@@ -206,6 +206,10 @@ func (l *SessionLogic) UpdateSession(req dto.UpdateSessionReq) error {
 	return l.appCtx.UserSessionModel().UpdateUserSession(uIds, req.Id, req.Name, req.Remark, mute, req.ExtData, nil, nil, nil, nil)
 }
 
+func (l *SessionLogic) DelSession(req dto.DelSessionReq) error {
+	return l.appCtx.SessionUserModel().DelSession(req.Id)
+}
+
 func (l *SessionLogic) UpdateUserSession(req dto.UpdateUserSessionReq) (err error) {
 	lockKey := fmt.Sprintf(userSessionUpdateLockKey, l.appCtx.Config().Name, req.UId, req.SId)
 	locker := l.appCtx.NewLocker(lockKey, 1000, 1000)

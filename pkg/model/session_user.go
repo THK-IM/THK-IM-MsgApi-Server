@@ -43,6 +43,7 @@ type (
 		AddUser(session *Session, entityIds []int64, userIds []int64, role []int, maxCount int) ([]*UserSession, error)
 		DelUser(session *Session, userIds []int64) (err error)
 		UpdateUser(sessionId int64, userIds []int64, role, status *int, mute *string) (err error)
+		DelSession(sessionId int64) error
 	}
 
 	defaultSessionUserModel struct {
@@ -264,12 +265,59 @@ func (d defaultSessionUserModel) UpdateUser(sessionId int64, userIds []int64, ro
 	return d.db.Exec(sqlBuffer.String(), sessionId, userIds).Error
 }
 
+func (d defaultSessionUserModel) DelSession(sessionId int64) (err error) {
+	tx := d.db.Begin()
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback().Error
+		} else {
+			err = tx.Commit().Error
+		}
+	}()
+
+	sessionUser := make([]*SessionUser, 0)
+	tableName := d.genSessionUserTableName(sessionId)
+	sqlStr := fmt.Sprintf("select * from %s where session_id = ?", tableName)
+	err = d.db.Raw(sqlStr, sessionId).Scan(&sessionUser).Error
+	if err != nil {
+		return err
+	}
+
+	now := time.Now().UnixMilli()
+	for _, su := range sessionUser {
+		tableName = d.genUserSessionTableName(su.UserId)
+		if su.Deleted == 0 {
+			sqlStr = fmt.Sprintf("update %s set deleted = 1 and update_time = ? where session_id = ? and user_id = ? ", tableName)
+			err = tx.Exec(sqlStr, now, su.SessionId, su.UserId).Error
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	tableName = d.genUserSessionTableName(sessionId)
+	sqlStr = fmt.Sprintf("update %s set deleted = 1 and update_time = ? where session_id = ?", tableName)
+	err = tx.Exec(sqlStr, now, sessionId).Error
+	if err != nil {
+		return err
+	}
+
+	tableName = d.genSessionTableName(sessionId)
+	sqlStr = fmt.Sprintf("update %s set deleted = 1 and update_time = ? where session_id = ?", tableName)
+	err = tx.Exec(sqlStr, now, sessionId).Error
+	return
+}
+
 func (d defaultSessionUserModel) genUserSessionTableName(userId int64) string {
 	return fmt.Sprintf("user_session_%d", userId%(d.shards))
 }
 
 func (d defaultSessionUserModel) genSessionUserTableName(sessionId int64) string {
 	return fmt.Sprintf("session_user_%d", sessionId%(d.shards))
+}
+
+func (d defaultSessionUserModel) genSessionTableName(sessionId int64) string {
+	return fmt.Sprintf("session_%d", sessionId%(d.shards))
 }
 
 func NewSessionUserModel(db *gorm.DB, logger *logrus.Entry, snowflakeNode *snowflake.Node, shards int64) SessionUserModel {

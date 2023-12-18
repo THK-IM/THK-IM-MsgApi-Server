@@ -23,6 +23,7 @@ type (
 	}
 
 	SessionApi interface {
+		DelSession(sessionId int64, req *dto.DelSessionReq) error
 		UpdateSession(sessionId int64, req *dto.UpdateSessionReq) error
 		QuerySessionUsers(sessionId int64, req *dto.QuerySessionUsersReq) (*dto.QuerySessionUsersRes, error)
 		QuerySessionUser(sessionId, userId int64) (*dto.SessionUser, error)

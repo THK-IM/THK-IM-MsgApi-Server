@@ -28,11 +28,15 @@ type CreateSessionRes struct {
 }
 
 type UpdateSessionReq struct {
-	Id      int64   `json:"id" uri:"id"`
+	Id      int64   `json:"id"`
 	Mute    *int    `json:"mute"`
 	Name    *string `json:"name"`
 	Remark  *string `json:"remark"`
 	ExtData *string `json:"ext_data"`
+}
+
+type DelSessionReq struct {
+	Id int64 `json:"id"`
 }
 
 type UpdateUserSessionReq struct {

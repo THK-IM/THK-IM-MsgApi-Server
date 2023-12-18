@@ -105,6 +105,47 @@ func updateSession(appCtx *app.Context) gin.HandlerFunc {
 	}
 }
 
+func deleteSession(appCtx *app.Context) gin.HandlerFunc {
+	l := logic.NewSessionLogic(appCtx)
+	return func(ctx *gin.Context) {
+		var req dto.DelSessionReq
+		if err := ctx.ShouldBindJSON(&req); err != nil {
+			appCtx.Logger().Errorf("deleteSession %s", err.Error())
+			baseDto.ResponseBadRequest(ctx)
+			return
+		}
+
+		if id, err := strconv.Atoi(ctx.Param("id")); err != nil {
+			appCtx.Logger().Errorf("deleteSession %s", err.Error())
+			baseDto.ResponseBadRequest(ctx)
+			return
+		} else {
+			req.Id = int64(id)
+		}
+		requestUid := ctx.GetInt64(userSdk.UidKey)
+		if requestUid > 0 {
+			if sessionUser, err := appCtx.SessionUserModel().FindSessionUser(req.Id, requestUid); err != nil {
+				baseDto.ResponseForbidden(ctx)
+				return
+			} else {
+				if sessionUser.Role == model.SessionMember {
+					appCtx.Logger().Errorf("deleteSession %d", sessionUser.Role)
+					baseDto.ResponseForbidden(ctx)
+					return
+				}
+			}
+		}
+
+		if err := l.DelSession(req); err != nil {
+			appCtx.Logger().Errorf("deleteSession %s", err.Error())
+			baseDto.ResponseInternalServerError(ctx, err)
+		} else {
+			appCtx.Logger().Infof("deleteSession %v", req)
+			baseDto.ResponseSuccess(ctx, nil)
+		}
+	}
+}
+
 func updateUserSession(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionLogic(appCtx)
 	return func(ctx *gin.Context) {

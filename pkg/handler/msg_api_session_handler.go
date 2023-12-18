@@ -132,6 +132,10 @@ func deleteSession(appCtx *app.Context) gin.HandlerFunc {
 					appCtx.Logger().Errorf("deleteSession %d", sessionUser.Role)
 					baseDto.ResponseForbidden(ctx)
 					return
+				} else if sessionUser.Type == model.SingleSessionType {
+					appCtx.Logger().Errorf("deleteSession %d", sessionUser.Type)
+					baseDto.ResponseBadRequest(ctx)
+					return
 				}
 			}
 		}

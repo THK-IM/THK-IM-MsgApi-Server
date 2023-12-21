@@ -62,7 +62,7 @@ func (d defaultSessionUserModel) FindSessionUsersByMTime(sessionId, mTime int64,
 		sqlStr := fmt.Sprintf("select * from %s where session_id = ? and deleted = 0 and update_time <= ? order by update_time desc limit 0, ?", tableName)
 		err = d.db.Raw(sqlStr, sessionId, mTime, count).Scan(&sessionUser).Error
 	} else {
-		sqlStr := fmt.Sprintf("select * from %s where session_id = ? and deleted = 0 and role = ? and update_time <= ? order by update_time desc limit 0, ?", tableName)
+		sqlStr := fmt.Sprintf("select * from %s where session_id = ? and deleted = 0 and role >= ? and update_time <= ? order by update_time desc limit 0, ?", tableName)
 		err = d.db.Raw(sqlStr, sessionId, *role, mTime, count).Scan(&sessionUser).Error
 	}
 	return sessionUser, err

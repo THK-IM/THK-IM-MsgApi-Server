@@ -73,7 +73,8 @@ func RegisterMsgApiHandlers(appCtx *app.Context) {
 		systemRoute.POST("/user/online", updateUserOnlineStatus(appCtx)) // 更新用户在线状态
 		systemRoute.GET("/user/online", queryUserOnlineStatus(appCtx))   // 获取用户上线状态
 		systemRoute.POST("/user/kickoff", kickOffUser(appCtx))           // 踢下线用户
-		systemRoute.POST("/message/send", sendSystemMessage(appCtx))     // 发送系统消息
-		systemRoute.POST("/message/push", pushExtendedMessage(appCtx))   // 推送消息(用户消息/好友消息/群组消息/自定义消息)
+		systemRoute.POST("/session_message", sendSessionMessage(appCtx)) // 发送session消息
+		systemRoute.POST("/sys_message", sendSystemMessage(appCtx))      // 发送系统消息
+		systemRoute.POST("/push_message", pushMessage(appCtx))           // 推送消息(用户消息/好友消息/群组消息/自定义消息)
 	}
 }

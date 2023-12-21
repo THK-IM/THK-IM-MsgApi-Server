@@ -3,6 +3,7 @@ package logic
 import (
 	"encoding/json"
 	"fmt"
+	baseErrorx "github.com/thk-im/thk-im-base-server/errorx"
 	"github.com/thk-im/thk-im-base-server/event"
 	"github.com/thk-im/thk-im-base-server/utils"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
@@ -11,6 +12,7 @@ import (
 	"github.com/thk-im/thk-im-msgapi-server/pkg/model"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type MessageLogic struct {
@@ -145,6 +147,41 @@ func (l *MessageLogic) SendMessage(req dto.SendMessageReq) (*dto.SendMessageRes,
 		return &dto.SendMessageRes{
 			MsgId:      sessionMessage.MsgId,
 			CreateTime: sessionMessage.CreateTime,
+			OnlineIds:  onlineUIds,
+			OfflineIds: offlineUIds,
+		}, nil
+	}
+
+}
+
+func (l *MessageLogic) SendSysMessage(req dto.SendSysMessageReq) (*dto.SendSysMessageRes, error) {
+	if req.Receivers == nil || len(req.Receivers) == 0 {
+		return nil, baseErrorx.ErrParamsError
+	}
+	msgId := l.appCtx.SessionMessageModel().NewMsgId()
+	now := time.Now().UnixMilli()
+	sessionType := 0
+	sessionMessage := &model.SessionMessage{
+		MsgId:      msgId,
+		ClientId:   msgId,
+		SessionId:  0,
+		FromUserId: 0,
+		MsgType:    req.Type,
+		MsgContent: req.Body,
+		AtUsers:    nil,
+		ReplyMsgId: nil,
+		ExtData:    req.ExtData,
+		CreateTime: now,
+		UpdateTime: now,
+		Deleted:    0,
+	}
+
+	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(sessionMessage, sessionType, req.Receivers); err != nil {
+		return nil, errorx.ErrMessageDeliveryFailed
+	} else {
+		return &dto.SendSysMessageRes{
+			MsgId:      msgId,
+			CreateTime: now,
 			OnlineIds:  onlineUIds,
 			OfflineIds: offlineUIds,
 		}, nil

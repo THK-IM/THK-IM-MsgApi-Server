@@ -73,7 +73,22 @@ type SendMessageReq struct {
 	ExtData   *string `json:"ext_data,omitempty"`
 }
 
+type SendSysMessageReq struct {
+	Type      int     `json:"type" binding:"required"`
+	CTime     int64   `json:"c_time" binding:"required"`
+	Body      string  `json:"body" binding:"required"`
+	Receivers []int64 `json:"receivers,omitempty"`
+	ExtData   *string `json:"ext_data,omitempty"`
+}
+
 type SendMessageRes struct {
+	MsgId      int64   `json:"msg_id"`
+	CreateTime int64   `json:"c_time"`
+	OnlineIds  []int64 `json:"online_ids,omitempty"`
+	OfflineIds []int64 `json:"offline_ids,omitempty"`
+}
+
+type SendSysMessageRes struct {
 	MsgId      int64   `json:"msg_id"`
 	CreateTime int64   `json:"c_time"`
 	OnlineIds  []int64 `json:"online_ids,omitempty"`

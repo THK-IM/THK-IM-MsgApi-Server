@@ -15,8 +15,9 @@ const (
 
 type (
 	SystemApi interface {
-		PushExtendedMessage(req *dto.PushMessageReq) (*dto.PushMessageRes, error)
-		SendSystemMessage(req *dto.SendMessageReq) (*dto.SendMessageRes, error)
+		PushMessage(req *dto.PushMessageReq) (*dto.PushMessageRes, error)
+		SendSysMessage(req *dto.SendSysMessageReq) (*dto.SendSysMessageRes, error)
+		SendSessionMessage(req *dto.SendMessageReq) (*dto.SendMessageRes, error)
 		KickOffUser(req *dto.KickUserReq) error
 		QueryUsersOnlineStatus(req *dto.QueryUsersOnlineStatusReq) (*dto.QueryUsersOnlineStatusRes, error)
 		PostUserOnlineStatus(req *dto.PostUserOnlineReq) error

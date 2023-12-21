@@ -14,54 +14,54 @@ const (
 	systemUrl = "/system"
 )
 
-func (d defaultMsgApi) PushExtendedMessage(req *dto.PushMessageReq) (*dto.PushMessageRes, error) {
+func (d defaultMsgApi) PushMessage(req *dto.PushMessageReq) (*dto.PushMessageRes, error) {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
-		d.logger.Errorf("PushExtendedMessage: %v %v", req, err)
+		d.logger.Errorf("PushMessage: %v %v", req, err)
 		return nil, err
 	}
-	url := fmt.Sprintf("%s%s%s", d.endpoint, systemUrl, "/message/push")
+	url := fmt.Sprintf("%s%s%s", d.endpoint, systemUrl, "/push_message")
 	res, errRequest := d.client.R().
 		SetHeader("Content-Type", jsonContentType).
 		SetBody(dataBytes).
 		Post(url)
 	if errRequest != nil {
-		d.logger.Errorf("PushExtendedMessage: %v %v", req, errRequest)
+		d.logger.Errorf("PushMessage: %v %v", req, errRequest)
 		return nil, errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
 		errRes := &errorx.ErrorX{}
 		e := json.Unmarshal(res.Body(), errRes)
 		if e != nil {
-			d.logger.Errorf("PushExtendedMessage: %v %v", req, e)
+			d.logger.Errorf("PushMessage: %v %v", req, e)
 			return nil, e
 		} else {
 			return nil, errRes
 		}
 	} else {
 		if res.Body() == nil || len(res.Body()) == 0 {
-			d.logger.Infof("PushExtendedMessage: %v %s", req, "Body is nil")
+			d.logger.Infof("PushMessage: %v %s", req, "Body is nil")
 			return nil, nil
 		}
 		resp := &dto.PushMessageRes{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {
-			d.logger.Errorf("PushExtendedMessage: %v %v", req, e)
+			d.logger.Errorf("PushMessage: %v %v", req, e)
 			return nil, e
 		} else {
-			d.logger.Infof("PushExtendedMessage: %v %v", req, resp)
+			d.logger.Infof("PushMessage: %v %v", req, resp)
 			return resp, nil
 		}
 	}
 }
 
-func (d defaultMsgApi) SendSystemMessage(req *dto.SendMessageReq) (*dto.SendMessageRes, error) {
+func (d defaultMsgApi) SendSysMessage(req *dto.SendSysMessageReq) (*dto.SendSysMessageRes, error) {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
 		d.logger.Errorf("SendSystemMessage: %v %v", req, err)
 		return nil, err
 	}
-	url := fmt.Sprintf("%s%s%s", d.endpoint, systemUrl, "/message/send")
+	url := fmt.Sprintf("%s%s%s", d.endpoint, systemUrl, "/sys_message")
 	res, errRequest := d.client.R().
 		SetHeader("Content-Type", jsonContentType).
 		SetBody(dataBytes).
@@ -84,13 +84,54 @@ func (d defaultMsgApi) SendSystemMessage(req *dto.SendMessageReq) (*dto.SendMess
 			d.logger.Infof("SendSystemMessage: %v %s", req, "Body is nil")
 			return nil, nil
 		}
-		resp := &dto.SendMessageRes{}
+		resp := &dto.SendSysMessageRes{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {
 			d.logger.Errorf("SendSystemMessage: %v %v", req, e)
 			return nil, e
 		} else {
 			d.logger.Infof("SendSystemMessage: %v %v", req, resp)
+			return resp, nil
+		}
+	}
+}
+
+func (d defaultMsgApi) SendSessionMessage(req *dto.SendMessageReq) (*dto.SendMessageRes, error) {
+	dataBytes, err := json.Marshal(req)
+	if err != nil {
+		d.logger.Errorf("SendSessionMessage: %v %v", req, err)
+		return nil, err
+	}
+	url := fmt.Sprintf("%s%s%s", d.endpoint, systemUrl, "/session_message")
+	res, errRequest := d.client.R().
+		SetHeader("Content-Type", jsonContentType).
+		SetBody(dataBytes).
+		Post(url)
+	if errRequest != nil {
+		d.logger.Errorf("SendSessionMessage: %v %v", req, errRequest)
+		return nil, errRequest
+	}
+	if res.StatusCode() != http.StatusOK {
+		errRes := &errorx.ErrorX{}
+		e := json.Unmarshal(res.Body(), errRes)
+		if e != nil {
+			d.logger.Errorf("SendSessionMessage: %v %v", req, e)
+			return nil, e
+		} else {
+			return nil, errRes
+		}
+	} else {
+		if res.Body() == nil || len(res.Body()) == 0 {
+			d.logger.Infof("SendSessionMessage: %v %s", req, "Body is nil")
+			return nil, nil
+		}
+		resp := &dto.SendMessageRes{}
+		e := json.Unmarshal(res.Body(), resp)
+		if e != nil {
+			d.logger.Errorf("SendSessionMessage: %v %v", req, e)
+			return nil, e
+		} else {
+			d.logger.Infof("SendSessionMessage: %v %v", req, resp)
 			return resp, nil
 		}
 	}

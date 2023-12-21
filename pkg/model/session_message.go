@@ -36,6 +36,7 @@ type (
 	}
 
 	SessionMessageModel interface {
+		NewMsgId() int64
 		UpdateSessionMessageContent(sessionId, msgId, fUid int64, content string) (int64, error)
 		DeleteSessionMessage(sessionId, msgId int64, fUid int64) (int64, error)
 		FindSessionMessage(sessionId, msgId, fUid int64) (*SessionMessage, error)
@@ -53,6 +54,10 @@ type (
 		snowflakeNode *snowflake.Node
 	}
 )
+
+func (d defaultSessionMessageModel) NewMsgId() int64 {
+	return d.snowflakeNode.Generate().Int64()
+}
 
 func (d defaultSessionMessageModel) UpdateSessionMessageContent(sessionId, msgId, fUid int64, content string) (int64, error) {
 	sqlStr := fmt.Sprintf("update %s set msg_content = ?, update_time = ?  where session_id = ? and msg_id = ? and from_user_id = ? ", d.genSessionMessageTableName(sessionId))

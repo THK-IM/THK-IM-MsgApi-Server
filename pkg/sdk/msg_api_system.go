@@ -15,6 +15,64 @@ const (
 	systemUrl = "/system"
 )
 
+func (d defaultMsgApi) SysDelSessionUser(sessionId int64, req *dto.SessionDelUserReq, claims baseDto.ThkClaims) error {
+	dataBytes, err := json.Marshal(req)
+	if err != nil {
+		d.logger.Errorf("SysDelSessionUser: %v %v", req, err)
+		return err
+	}
+	url := fmt.Sprintf("%s%s/%s/user", d.endpoint, systemUrl, fmt.Sprintf("session/%d", sessionId))
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
+		SetHeader("Content-Type", jsonContentType).
+		SetBody(dataBytes).
+		Delete(url)
+	if errRequest != nil {
+		return errRequest
+	}
+	if res.StatusCode() != http.StatusOK {
+		e := errors.New(string(res.Body()))
+		d.logger.Errorf("SysDelSessionUser: %v %v", req, e)
+		return e
+	} else {
+		d.logger.Errorf("SysDelSessionUser: %v %s", req, "success")
+		return nil
+	}
+}
+
+func (d defaultMsgApi) SysAddSessionUser(sessionId int64, req *dto.SessionAddUserReq, claims baseDto.ThkClaims) error {
+	dataBytes, err := json.Marshal(req)
+	if err != nil {
+		d.logger.Errorf("SysAddSessionUser: %v %v", req, err)
+		return err
+	}
+	url := fmt.Sprintf("%s%s/%s/user", d.endpoint, systemUrl, fmt.Sprintf("session/%d", sessionId))
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
+		SetHeader("Content-Type", jsonContentType).
+		SetBody(dataBytes).
+		Post(url)
+	if errRequest != nil {
+		return errRequest
+	}
+	if res.StatusCode() != http.StatusOK {
+		e := errors.New(string(res.Body()))
+		d.logger.Errorf("SysAddSessionUser: %v %v", req, e)
+		return e
+	} else {
+		d.logger.Errorf("SysAddSessionUser: %v %s", req, "success")
+		return nil
+	}
+}
+
 func (d defaultMsgApi) PushMessage(req *dto.PushMessageReq, claims baseDto.ThkClaims) (*dto.PushMessageRes, error) {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {

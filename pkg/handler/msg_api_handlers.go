@@ -27,16 +27,16 @@ func RegisterMsgApiHandlers(appCtx *app.Context) {
 	sessionRoute := httpEngine.Group("/session")
 	sessionRoute.Use(authMiddleware)
 	{
-		sessionRoute.POST("", createSession(appCtx))                      // 创建/获取session
-		sessionRoute.PUT("/:id", updateSession(appCtx))                   // 修改session相关信息
-		sessionRoute.DELETE("/:id", deleteSession(appCtx))                // 删除session
-		sessionRoute.GET("/:id/user", getSessionUsers(appCtx))            // 会话成员查询
-		sessionRoute.GET("/:id/user/:uid", getSessionUser(appCtx))        // 会话成员查询
-		sessionRoute.POST("/:id/user", addSessionUser(appCtx))            // 会话增员
-		sessionRoute.DELETE("/:id/user", deleteSessionUser(appCtx))       // 会话减员
-		sessionRoute.PUT("/:id/user", updateSessionUser(appCtx))          // 会话成员修改
-		sessionRoute.GET("/:id/message", getSessionMessages(appCtx))      // 获取session下的消息列表
-		sessionRoute.DELETE("/:id/message", deleteSessionMessage(appCtx)) // 删除session下的消息列表
+		sessionRoute.POST("", createSession(appCtx))                        // 创建/获取session
+		sessionRoute.PUT("/:id", updateSession(appCtx))                     // 修改session相关信息
+		sessionRoute.DELETE("/:id", deleteSession(appCtx))                  // 删除session
+		sessionRoute.GET("/:id/user", getSessionUsers(appCtx))              // 会话成员查询
+		sessionRoute.GET("/:id/user/:uid", getSessionUser(appCtx))          // 会话成员查询
+		sessionRoute.POST("/session/:id/user", addSessionUser(appCtx))      // 会话增员
+		sessionRoute.DELETE("/session/:id/user", deleteSessionUser(appCtx)) // 会话减员
+		sessionRoute.PUT("/:id/user", updateSessionUser(appCtx))            // 会话成员修改
+		sessionRoute.GET("/:id/message", getSessionMessages(appCtx))        // 获取session下的消息列表
+		sessionRoute.DELETE("/:id/message", deleteSessionMessage(appCtx))   // 删除session下的消息列表
 
 		// 如果提供内置对象存储服务，则开放接口
 		if appCtx.ObjectStorage() != nil {
@@ -70,11 +70,13 @@ func RegisterMsgApiHandlers(appCtx *app.Context) {
 	systemRoute := httpEngine.Group("/system")
 	systemRoute.Use(ipAuth)
 	{
-		systemRoute.POST("/user/online", updateUserOnlineStatus(appCtx)) // 更新用户在线状态
-		systemRoute.GET("/user/online", queryUserOnlineStatus(appCtx))   // 获取用户上线状态
-		systemRoute.POST("/user/kickoff", kickOffUser(appCtx))           // 踢下线用户
-		systemRoute.POST("/session_message", sendSessionMessage(appCtx)) // 发送session消息
-		systemRoute.POST("/sys_message", sendSystemMessage(appCtx))      // 发送系统消息
-		systemRoute.POST("/push_message", pushMessage(appCtx))           // 推送消息(用户消息/好友消息/群组消息/自定义消息)
+		systemRoute.POST("/user/online", updateUserOnlineStatus(appCtx))    // 更新用户在线状态
+		systemRoute.GET("/user/online", queryUserOnlineStatus(appCtx))      // 获取用户上线状态
+		systemRoute.POST("/user/kickoff", kickOffUser(appCtx))              // 踢下线用户
+		sessionRoute.POST("/session/:id/user", addSessionUser(appCtx))      // 会话增员
+		sessionRoute.DELETE("/session/:id/user", deleteSessionUser(appCtx)) // 会话减员
+		systemRoute.POST("/session_message", sendSessionMessage(appCtx))    // 发送会话消息
+		systemRoute.POST("/system_message", sendSystemMessage(appCtx))      // 发送系统消息
+		systemRoute.POST("/push_message", pushMessage(appCtx))              // 推送消息(用户消息/好友消息/群组消息/自定义消息)
 	}
 }

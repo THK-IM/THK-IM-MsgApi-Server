@@ -14,6 +14,64 @@ const (
 	sessionUrl = "/session"
 )
 
+func (d defaultMsgApi) DelSessionUser(sessionId int64, req *dto.SessionDelUserReq, claims baseDto.ThkClaims) error {
+	dataBytes, err := json.Marshal(req)
+	if err != nil {
+		d.logger.Errorf("DelSessionUser: %v %v", req, err)
+		return err
+	}
+	url := fmt.Sprintf("%s%s/%d/user", d.endpoint, sessionUrl, sessionId)
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
+		SetHeader("Content-Type", jsonContentType).
+		SetBody(dataBytes).
+		Delete(url)
+	if errRequest != nil {
+		return errRequest
+	}
+	if res.StatusCode() != http.StatusOK {
+		e := errors.New(string(res.Body()))
+		d.logger.Errorf("DelSessionUser: %v %v", req, e)
+		return e
+	} else {
+		d.logger.Errorf("DelSessionUser: %v %s", req, "success")
+		return nil
+	}
+}
+
+func (d defaultMsgApi) AddSessionUser(sessionId int64, req *dto.SessionAddUserReq, claims baseDto.ThkClaims) error {
+	dataBytes, err := json.Marshal(req)
+	if err != nil {
+		d.logger.Errorf("AddSessionUser: %v %v", req, err)
+		return err
+	}
+	url := fmt.Sprintf("%s%s/%d/user", d.endpoint, sessionUrl, sessionId)
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
+		SetHeader("Content-Type", jsonContentType).
+		SetBody(dataBytes).
+		Post(url)
+	if errRequest != nil {
+		return errRequest
+	}
+	if res.StatusCode() != http.StatusOK {
+		e := errors.New(string(res.Body()))
+		d.logger.Errorf("AddSessionUser: %v %v", req, e)
+		return e
+	} else {
+		d.logger.Errorf("AddSessionUser: %v %s", req, "success")
+		return nil
+	}
+}
+
 func (d defaultMsgApi) DelSession(sessionId int64, req *dto.DelSessionReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
@@ -154,35 +212,6 @@ func (d defaultMsgApi) QuerySessionUser(sessionId, userId int64, claims baseDto.
 	}
 }
 
-func (d defaultMsgApi) DelSessionUser(sessionId int64, req *dto.SessionDelUserReq, claims baseDto.ThkClaims) error {
-	dataBytes, err := json.Marshal(req)
-	if err != nil {
-		d.logger.Errorf("DelSessionUser: %v %v", req, err)
-		return err
-	}
-	url := fmt.Sprintf("%s%s/%d/user", d.endpoint, sessionUrl, sessionId)
-	request := d.client.R()
-	for k, v := range claims {
-		vs := v.(string)
-		request.SetHeader(k, vs)
-	}
-	res, errRequest := request.
-		SetHeader("Content-Type", jsonContentType).
-		SetBody(dataBytes).
-		Delete(url)
-	if errRequest != nil {
-		return errRequest
-	}
-	if res.StatusCode() != http.StatusOK {
-		e := errors.New(string(res.Body()))
-		d.logger.Errorf("DelSessionUser: %v %v", req, e)
-		return e
-	} else {
-		d.logger.Errorf("DelSessionUser: %v %s", req, "success")
-		return nil
-	}
-}
-
 func (d defaultMsgApi) UpdateSessionUser(sessionId int64, req *dto.SessionUserUpdateReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
@@ -208,35 +237,6 @@ func (d defaultMsgApi) UpdateSessionUser(sessionId int64, req *dto.SessionUserUp
 		return e
 	} else {
 		d.logger.Errorf("UpdateSessionUser: %v %s", req, "success")
-		return nil
-	}
-}
-
-func (d defaultMsgApi) AddSessionUser(sessionId int64, req *dto.SessionAddUserReq, claims baseDto.ThkClaims) error {
-	dataBytes, err := json.Marshal(req)
-	if err != nil {
-		d.logger.Errorf("AddSessionUser: %v %v", req, err)
-		return err
-	}
-	url := fmt.Sprintf("%s%s/%d/user", d.endpoint, sessionUrl, sessionId)
-	request := d.client.R()
-	for k, v := range claims {
-		vs := v.(string)
-		request.SetHeader(k, vs)
-	}
-	res, errRequest := request.
-		SetHeader("Content-Type", jsonContentType).
-		SetBody(dataBytes).
-		Post(url)
-	if errRequest != nil {
-		return errRequest
-	}
-	if res.StatusCode() != http.StatusOK {
-		e := errors.New(string(res.Body()))
-		d.logger.Errorf("AddSessionUser: %v %v", req, e)
-		return e
-	} else {
-		d.logger.Errorf("AddSessionUser: %v %s", req, "success")
 		return nil
 	}
 }

@@ -27,7 +27,6 @@ func RegisterMsgApiHandlers(appCtx *app.Context) {
 	sessionRoute := httpEngine.Group("/session")
 	sessionRoute.Use(authMiddleware)
 	{
-		sessionRoute.POST("", createSession(appCtx))                        // 创建/获取session
 		sessionRoute.PUT("/:id", updateSession(appCtx))                     // 修改session相关信息
 		sessionRoute.DELETE("/:id", deleteSession(appCtx))                  // 删除session
 		sessionRoute.GET("/:id/user", getSessionUsers(appCtx))              // 会话成员查询
@@ -74,6 +73,7 @@ func RegisterMsgApiHandlers(appCtx *app.Context) {
 		systemRoute.POST("/user/online", updateUserOnlineStatus(appCtx))   // 更新用户在线状态
 		systemRoute.GET("/user/online", queryUserOnlineStatus(appCtx))     // 获取用户上线状态
 		systemRoute.POST("/user/kickoff", kickOffUser(appCtx))             // 踢下线用户
+		sessionRoute.POST("/session", createSession(appCtx))               // 创建/获取session
 		systemRoute.POST("/session/:id/user", addSessionUser(appCtx))      // 会话增员
 		systemRoute.DELETE("/session/:id/user", deleteSessionUser(appCtx)) // 会话减员
 		systemRoute.POST("/session_message", sendSessionMessage(appCtx))   // 发送会话消息

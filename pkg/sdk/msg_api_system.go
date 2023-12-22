@@ -15,6 +15,52 @@ const (
 	systemUrl = "/system"
 )
 
+func (d defaultMsgApi) CreateSession(req *dto.CreateSessionReq, claims baseDto.ThkClaims) (*dto.CreateSessionRes, error) {
+	dataBytes, err := json.Marshal(req)
+	if err != nil {
+		d.logger.Errorf("CreateSession: %v %v", req, err)
+		return nil, err
+	}
+	url := fmt.Sprintf("%s%s/session", d.endpoint, systemUrl)
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
+		SetHeader("Content-Type", jsonContentType).
+		SetBody(dataBytes).
+		Post(url)
+	if errRequest != nil {
+		d.logger.Errorf("CreateSession: %v %v", req, errRequest)
+		return nil, errRequest
+	}
+	if res.StatusCode() != http.StatusOK {
+		errRes := &errorx.ErrorX{}
+		e := json.Unmarshal(res.Body(), errRes)
+		if e != nil {
+			d.logger.Errorf("CreateSession: %v %v", req, e)
+			return nil, e
+		} else {
+			return nil, errRes
+		}
+	} else {
+		if res.Body() == nil || len(res.Body()) == 0 {
+			d.logger.Infof("CreateSession: %v %s", req, "Body is nil")
+			return nil, nil
+		}
+		resp := &dto.CreateSessionRes{}
+		e := json.Unmarshal(res.Body(), resp)
+		if e != nil {
+			d.logger.Errorf("CreateSession: %v %v", req, e)
+			return nil, e
+		} else {
+			d.logger.Infof("CreateSession: %v %v", req, resp)
+			return resp, nil
+		}
+	}
+}
+
 func (d defaultMsgApi) SysDelSessionUser(sessionId int64, req *dto.SessionDelUserReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {

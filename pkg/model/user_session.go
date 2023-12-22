@@ -68,7 +68,7 @@ func (d defaultUserSessionModel) FindUserSessionByEntityId(userId, entityId int6
 
 func (d defaultUserSessionModel) UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute, extData *string, top *int64, status, role *int, parentId *int64) (err error) {
 	// 分表uid数组
-	sharedUIds := make(map[int64][]int64, 0)
+	sharedUIds := make(map[int64][]int64)
 	for _, uId := range userIds {
 		share := uId % d.shards
 		if sharedUIds[share] == nil {

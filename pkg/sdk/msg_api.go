@@ -37,9 +37,14 @@ type (
 		CreateSession(req *dto.CreateSessionReq, claims baseDto.ThkClaims) (*dto.CreateSessionRes, error)
 	}
 
+	UserSessionApi interface {
+		UpdateUserSession(req *dto.UpdateUserSessionReq, claims baseDto.ThkClaims) error
+	}
+
 	MsgApi interface {
 		SystemApi
 		SessionApi
+		UserSessionApi
 	}
 
 	defaultMsgApi struct {

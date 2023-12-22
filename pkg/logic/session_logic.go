@@ -251,10 +251,20 @@ func (l *SessionLogic) GetUserSessions(req dto.GetUserSessionsReq, claims baseDt
 	return &dto.GetUserSessionsRes{Data: dtoUserSessions}, nil
 }
 
-func (l *SessionLogic) GetUserSession(uid, sid int64, claims baseDto.ThkClaims) (*dto.UserSession, error) {
-	userSession, err := l.appCtx.UserSessionModel().GetUserSession(uid, sid)
+func (l *SessionLogic) GetUserSession(uId, sId int64, claims baseDto.ThkClaims) (*dto.UserSession, error) {
+	userSession, err := l.appCtx.UserSessionModel().GetUserSession(uId, sId)
 	if err != nil {
-		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("GetUserSession, %v %v %v", uid, sid, err)
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("GetUserSession, %v %v %v", uId, sId, err)
+		return nil, err
+	}
+	dtoUserSession := l.convUserSession(userSession)
+	return dtoUserSession, nil
+}
+
+func (l *SessionLogic) GetUserSessionByEntityId(req *dto.QueryUserSessionReq, claims baseDto.ThkClaims) (*dto.UserSession, error) {
+	userSession, err := l.appCtx.UserSessionModel().FindUserSessionByEntityId(req.UId, req.EntityId, req.Type, false)
+	if err != nil {
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("GetUserSessionByEntityId, %v %v", req, err)
 		return nil, err
 	}
 	dtoUserSession := l.convUserSession(userSession)

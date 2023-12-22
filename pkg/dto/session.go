@@ -54,6 +54,12 @@ type GetUserSessionsReq struct {
 	MTime  int64 `json:"m_time" form:"m_time"`
 }
 
+type QueryUserSessionReq struct {
+	UId      int64 `json:"u_id" form:"u_id"`
+	EntityId int64 `json:"entity_id" form:"entity_id"`
+	Type     int   `json:"type" form:"type"`
+}
+
 type UserSession struct {
 	SId      int64   `json:"s_id"`
 	Name     string  `json:"name"`

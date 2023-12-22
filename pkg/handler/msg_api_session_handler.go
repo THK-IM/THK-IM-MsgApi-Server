@@ -214,6 +214,33 @@ func getUserSessions(appCtx *app.Context) gin.HandlerFunc {
 	}
 }
 
+func queryUserSession(appCtx *app.Context) gin.HandlerFunc {
+	l := logic.NewSessionLogic(appCtx)
+	return func(ctx *gin.Context) {
+		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
+		var req dto.QueryUserSessionReq
+		if err := ctx.ShouldBindQuery(&req); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("queryUserSession %s", err.Error())
+			baseDto.ResponseBadRequest(ctx)
+			return
+		}
+		requestUid := ctx.GetInt64(userSdk.UidKey)
+		if requestUid > 0 && requestUid != req.UId {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("queryUserSession %d %d", requestUid, req.UId)
+			baseDto.ResponseForbidden(ctx)
+			return
+		}
+
+		if resp, err := l.GetUserSessionByEntityId(&req, claims); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("queryUserSession %v %v", req, err)
+			baseDto.ResponseInternalServerError(ctx, err)
+		} else {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("queryUserSession %v %v", req, resp)
+			baseDto.ResponseSuccess(ctx, resp)
+		}
+	}
+}
+
 func getUserSession(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionLogic(appCtx)
 	return func(ctx *gin.Context) {

@@ -39,6 +39,7 @@ type (
 
 	UserSessionApi interface {
 		UpdateUserSession(req *dto.UpdateUserSessionReq, claims baseDto.ThkClaims) error
+		QueryUserSession(req *dto.QueryUserSessionReq, claims baseDto.ThkClaims) (*dto.UserSession, error)
 	}
 
 	MsgApi interface {

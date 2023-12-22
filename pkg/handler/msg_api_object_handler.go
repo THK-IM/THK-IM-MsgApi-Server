@@ -2,8 +2,10 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	baseErrorx "github.com/thk-im/thk-im-base-server/errorx"
+	baseMiddleware "github.com/thk-im/thk-im-base-server/middleware"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/logic"
@@ -13,25 +15,26 @@ import (
 func getObjectUploadParams(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionObjectLogic(appCtx)
 	return func(ctx *gin.Context) {
+		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
 		var req dto.GetUploadParamsReq
 		if err := ctx.BindQuery(&req); err != nil {
-			appCtx.Logger().Errorf("getObjectUploadParams %v %s", req, err.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getObjectUploadParams %v %s", req, err.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
-			appCtx.Logger().Errorf("getObjectUploadParams %v %d", req, requestUid)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getObjectUploadParams %v %d", req, requestUid)
 			baseDto.ResponseForbidden(ctx)
 			return
 		}
 
-		res, err := l.GetUploadParams(req)
+		res, err := l.GetUploadParams(req, claims)
 		if err != nil {
-			appCtx.Logger().Errorf("getObjectUploadParams %v %d", req, requestUid)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getObjectUploadParams %v %d", req, requestUid)
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			appCtx.Logger().Infof("getObjectUploadParams %v %v", req, res)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("getObjectUploadParams %v %v", req, res)
 			baseDto.ResponseSuccess(ctx, res)
 		}
 	}
@@ -40,9 +43,10 @@ func getObjectUploadParams(appCtx *app.Context) gin.HandlerFunc {
 func getObjectDownloadUrl(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionObjectLogic(appCtx)
 	return func(ctx *gin.Context) {
+		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
 		var req dto.GetDownloadUrlReq
 		if err := ctx.BindQuery(&req); err != nil {
-			appCtx.Logger().Errorf("getObjectDownloadUrl %v", err)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getObjectDownloadUrl %v", err)
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
@@ -50,16 +54,16 @@ func getObjectDownloadUrl(appCtx *app.Context) gin.HandlerFunc {
 		requestUid := ctx.GetInt64(userSdk.UidKey)
 		req.UId = requestUid
 
-		path, err := l.GetObjectByKey(req)
+		path, err := l.GetObjectByKey(req, claims)
 		if err != nil {
-			appCtx.Logger().Errorf("getObjectDownloadUrl %v", err)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getObjectDownloadUrl %v", err)
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
 			if path != nil {
-				appCtx.Logger().Infof("getObjectDownloadUrl %s", *path)
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("getObjectDownloadUrl %s", *path)
 				baseDto.Redirect302(ctx, *path)
 			} else {
-				appCtx.Logger().Errorf("getObjectDownloadUrl %s", "path is nil")
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getObjectDownloadUrl %s", "path is nil")
 				baseDto.ResponseInternalServerError(ctx, baseErrorx.ErrInternalServerError)
 			}
 		}

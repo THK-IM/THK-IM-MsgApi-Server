@@ -2,15 +2,18 @@ package logic
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
+	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	baseErrorx "github.com/thk-im/thk-im-base-server/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/model"
 )
 
-func (l *SessionLogic) QuerySessionUsers(req dto.QuerySessionUsersReq) (*dto.QuerySessionUsersRes, error) {
+func (l *SessionLogic) QuerySessionUsers(req dto.QuerySessionUsersReq, claims baseDto.ThkClaims) (*dto.QuerySessionUsersRes, error) {
 	sessionUser, err := l.appCtx.SessionUserModel().FindSessionUsersByMTime(req.SId, req.MTime, req.Role, req.Count)
 	if err != nil {
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("QuerySessionUsers: %v, error: %s", req, err)
 		return nil, err
 	}
 	dtoSessionUsers := make([]*dto.SessionUser, 0)
@@ -21,18 +24,19 @@ func (l *SessionLogic) QuerySessionUsers(req dto.QuerySessionUsersReq) (*dto.Que
 	return &dto.QuerySessionUsersRes{Data: dtoSessionUsers}, nil
 }
 
-func (l *SessionLogic) QuerySessionUser(sessionId, userId int64) (*dto.SessionUser, error) {
+func (l *SessionLogic) QuerySessionUser(sessionId, userId int64, claims baseDto.ThkClaims) (*dto.SessionUser, error) {
 	sessionUser, err := l.appCtx.SessionUserModel().FindSessionUser(sessionId, userId)
 	if err != nil {
 		return nil, err
 	}
 	if sessionUser.UserId == 0 {
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("QuerySessionUser: %v %v is empty", sessionId, userId)
 		return nil, nil
 	}
 	return l.convSessionUser(sessionUser), nil
 }
 
-func (l *SessionLogic) AddSessionUser(sid int64, req dto.SessionAddUserReq) error {
+func (l *SessionLogic) AddSessionUser(sid int64, req dto.SessionAddUserReq, claims baseDto.ThkClaims) error {
 	lockKey := fmt.Sprintf(sessionUpdateLockKey, l.appCtx.Config().Name, sid)
 	locker := l.appCtx.NewLocker(lockKey, 1000, 1000)
 	success, lockErr := locker.Lock()
@@ -41,7 +45,7 @@ func (l *SessionLogic) AddSessionUser(sid int64, req dto.SessionAddUserReq) erro
 	}
 	defer func() {
 		if success, lockErr = locker.Release(); lockErr != nil {
-			l.appCtx.Logger().Errorf("release locker success: %t, error: %s", success, lockErr.Error())
+			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("release locker success: %t, error: %s", success, lockErr.Error())
 		}
 	}()
 	session, err := l.appCtx.SessionModel().FindSession(sid)
@@ -66,7 +70,7 @@ func (l *SessionLogic) AddSessionUser(sid int64, req dto.SessionAddUserReq) erro
 	return err
 }
 
-func (l *SessionLogic) DelSessionUser(sid int64, deleteMsg bool, req dto.SessionDelUserReq) error {
+func (l *SessionLogic) DelSessionUser(sid int64, deleteMsg bool, req dto.SessionDelUserReq, claims baseDto.ThkClaims) error {
 	lockKey := fmt.Sprintf(sessionUpdateLockKey, l.appCtx.Config().Name, sid)
 	locker := l.appCtx.NewLocker(lockKey, 1000, 1000)
 	success, lockErr := locker.Lock()
@@ -75,7 +79,7 @@ func (l *SessionLogic) DelSessionUser(sid int64, deleteMsg bool, req dto.Session
 	}
 	defer func() {
 		if success, lockErr = locker.Release(); lockErr != nil {
-			l.appCtx.Logger().Errorf("release locker success: %t, error: %s", success, lockErr.Error())
+			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("release locker success: %t, error: %s", success, lockErr.Error())
 		}
 	}()
 	session, err := l.appCtx.SessionModel().FindSession(sid)
@@ -93,7 +97,7 @@ func (l *SessionLogic) DelSessionUser(sid int64, deleteMsg bool, req dto.Session
 
 }
 
-func (l *SessionLogic) UpdateSessionUser(req dto.SessionUserUpdateReq) (err error) {
+func (l *SessionLogic) UpdateSessionUser(req dto.SessionUserUpdateReq, claims baseDto.ThkClaims) (err error) {
 	lockKey := fmt.Sprintf(sessionUpdateLockKey, l.appCtx.Config().Name, req.SId)
 	locker := l.appCtx.NewLocker(lockKey, 1000, 1000)
 	success, lockErr := locker.Lock()
@@ -102,7 +106,7 @@ func (l *SessionLogic) UpdateSessionUser(req dto.SessionUserUpdateReq) (err erro
 	}
 	defer func() {
 		if success, lockErr = locker.Release(); lockErr != nil {
-			l.appCtx.Logger().Errorf("release locker success: %t, error: %s", success, lockErr.Error())
+			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("release locker success: %t, error: %s", success, lockErr.Error())
 		}
 	}()
 	var mute *string

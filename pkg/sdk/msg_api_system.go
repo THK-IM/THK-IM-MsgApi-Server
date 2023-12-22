@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"net/http"
@@ -14,14 +15,19 @@ const (
 	systemUrl = "/system"
 )
 
-func (d defaultMsgApi) PushMessage(req *dto.PushMessageReq) (*dto.PushMessageRes, error) {
+func (d defaultMsgApi) PushMessage(req *dto.PushMessageReq, claims baseDto.ThkClaims) (*dto.PushMessageRes, error) {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
 		d.logger.Errorf("PushMessage: %v %v", req, err)
 		return nil, err
 	}
 	url := fmt.Sprintf("%s%s%s", d.endpoint, systemUrl, "/push_message")
-	res, errRequest := d.client.R().
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
 		SetHeader("Content-Type", jsonContentType).
 		SetBody(dataBytes).
 		Post(url)
@@ -55,14 +61,19 @@ func (d defaultMsgApi) PushMessage(req *dto.PushMessageReq) (*dto.PushMessageRes
 	}
 }
 
-func (d defaultMsgApi) SendSysMessage(req *dto.SendSysMessageReq) (*dto.SendSysMessageRes, error) {
+func (d defaultMsgApi) SendSysMessage(req *dto.SendSysMessageReq, claims baseDto.ThkClaims) (*dto.SendSysMessageRes, error) {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
 		d.logger.Errorf("SendSystemMessage: %v %v", req, err)
 		return nil, err
 	}
 	url := fmt.Sprintf("%s%s%s", d.endpoint, systemUrl, "/sys_message")
-	res, errRequest := d.client.R().
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
 		SetHeader("Content-Type", jsonContentType).
 		SetBody(dataBytes).
 		Post(url)
@@ -96,14 +107,19 @@ func (d defaultMsgApi) SendSysMessage(req *dto.SendSysMessageReq) (*dto.SendSysM
 	}
 }
 
-func (d defaultMsgApi) SendSessionMessage(req *dto.SendMessageReq) (*dto.SendMessageRes, error) {
+func (d defaultMsgApi) SendSessionMessage(req *dto.SendMessageReq, claims baseDto.ThkClaims) (*dto.SendMessageRes, error) {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
 		d.logger.Errorf("SendSessionMessage: %v %v", req, err)
 		return nil, err
 	}
 	url := fmt.Sprintf("%s%s%s", d.endpoint, systemUrl, "/session_message")
-	res, errRequest := d.client.R().
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
 		SetHeader("Content-Type", jsonContentType).
 		SetBody(dataBytes).
 		Post(url)
@@ -137,14 +153,19 @@ func (d defaultMsgApi) SendSessionMessage(req *dto.SendMessageReq) (*dto.SendMes
 	}
 }
 
-func (d defaultMsgApi) KickOffUser(req *dto.KickUserReq) error {
+func (d defaultMsgApi) KickOffUser(req *dto.KickUserReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
 		d.logger.Errorf("KickOffUser: %v %v", req, err)
 		return err
 	}
 	url := fmt.Sprintf("%s%s%s", d.endpoint, systemUrl, "/user/kickoff")
-	res, errRequest := d.client.R().
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
 		SetHeader("Content-Type", jsonContentType).
 		SetBody(dataBytes).
 		Post(url)
@@ -161,14 +182,19 @@ func (d defaultMsgApi) KickOffUser(req *dto.KickUserReq) error {
 	}
 }
 
-func (d defaultMsgApi) QueryUsersOnlineStatus(req *dto.QueryUsersOnlineStatusReq) (*dto.QueryUsersOnlineStatusRes, error) {
+func (d defaultMsgApi) QueryUsersOnlineStatus(req *dto.QueryUsersOnlineStatusReq, claims baseDto.ThkClaims) (*dto.QueryUsersOnlineStatusRes, error) {
 	uIds := make([]string, 0)
 	for _, id := range req.UIds {
 		uIds = append(uIds, fmt.Sprintf("%d", id))
 	}
 	query := "u_ids=" + strings.Join(uIds, ",")
 	url := fmt.Sprintf("%s%s%s?%s", d.endpoint, systemUrl, "/user/online", query)
-	res, errRequest := d.client.R().
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
 		SetHeader("Content-Type", jsonContentType).
 		Get(url)
 	if errRequest != nil {
@@ -200,14 +226,19 @@ func (d defaultMsgApi) QueryUsersOnlineStatus(req *dto.QueryUsersOnlineStatusReq
 	}
 }
 
-func (d defaultMsgApi) PostUserOnlineStatus(req *dto.PostUserOnlineReq) error {
+func (d defaultMsgApi) PostUserOnlineStatus(req *dto.PostUserOnlineReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
 		d.logger.Errorf("PostUserOnlineStatus: %v %v", req, err)
 		return err
 	}
 	url := fmt.Sprintf("%s%s%s", d.endpoint, systemUrl, "/user/online")
-	res, errRequest := d.client.R().
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
 		SetHeader("Content-Type", jsonContentType).
 		SetBody(dataBytes).
 		Post(url)

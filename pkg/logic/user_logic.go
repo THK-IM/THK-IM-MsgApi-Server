@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/event"
 	"github.com/thk-im/thk-im-base-server/utils"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
@@ -21,7 +22,7 @@ func NewUserLogic(appCtx *app.Context) UserLogic {
 	}
 }
 
-func (l *UserLogic) UpdateUserOnlineStatus(req *dto.PostUserOnlineReq) error {
+func (l *UserLogic) UpdateUserOnlineStatus(req *dto.PostUserOnlineReq, claims baseDto.ThkClaims) error {
 	key := fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, req.UId)
 	var err error
 	if req.Online {
@@ -46,7 +47,7 @@ func (l *UserLogic) UpdateUserOnlineStatus(req *dto.PostUserOnlineReq) error {
 	return err
 }
 
-func (l *UserLogic) GetUsersOnlineStatus(uIds []int64) (*dto.QueryUsersOnlineStatusRes, error) {
+func (l *UserLogic) GetUsersOnlineStatus(uIds []int64, claims baseDto.ThkClaims) (*dto.QueryUsersOnlineStatusRes, error) {
 	uidOnlineKeys := make([]string, 0)
 	for _, uid := range uIds {
 		uidOnlineKey := fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, uid)
@@ -72,7 +73,7 @@ func (l *UserLogic) GetUsersOnlineStatus(uIds []int64) (*dto.QueryUsersOnlineSta
 	return &dto.QueryUsersOnlineStatusRes{UsersOnlineStatus: dtoUsersOnlineStatus}, nil
 }
 
-func (l *UserLogic) KickUser(req *dto.KickUserReq) error {
+func (l *UserLogic) KickUser(req *dto.KickUserReq, claims baseDto.ThkClaims) error {
 	ids := []int64{req.UId}
 	if idsStr, err := json.Marshal(ids); err != nil {
 		return err

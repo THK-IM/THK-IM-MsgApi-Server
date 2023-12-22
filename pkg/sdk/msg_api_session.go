@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"net/http"
@@ -13,14 +14,19 @@ const (
 	sessionUrl = "/session"
 )
 
-func (d defaultMsgApi) DelSession(sessionId int64, req *dto.DelSessionReq) error {
+func (d defaultMsgApi) DelSession(sessionId int64, req *dto.DelSessionReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
 		d.logger.Errorf("DelSession: %v %v", req, err)
 		return err
 	}
 	url := fmt.Sprintf("%s%s/%d", d.endpoint, sessionUrl, sessionId)
-	res, errRequest := d.client.R().
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
 		SetHeader("Content-Type", jsonContentType).
 		SetBody(dataBytes).
 		Delete(url)
@@ -37,14 +43,19 @@ func (d defaultMsgApi) DelSession(sessionId int64, req *dto.DelSessionReq) error
 	}
 }
 
-func (d defaultMsgApi) UpdateSession(sessionId int64, req *dto.UpdateSessionReq) error {
+func (d defaultMsgApi) UpdateSession(sessionId int64, req *dto.UpdateSessionReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
 		d.logger.Errorf("UpdateSession: %v %v", req, err)
 		return err
 	}
 	url := fmt.Sprintf("%s%s/%d", d.endpoint, sessionUrl, sessionId)
-	res, errRequest := d.client.R().
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
 		SetHeader("Content-Type", jsonContentType).
 		SetBody(dataBytes).
 		Put(url)
@@ -61,12 +72,17 @@ func (d defaultMsgApi) UpdateSession(sessionId int64, req *dto.UpdateSessionReq)
 	}
 }
 
-func (d defaultMsgApi) QuerySessionUsers(sessionId int64, req *dto.QuerySessionUsersReq) (*dto.QuerySessionUsersRes, error) {
+func (d defaultMsgApi) QuerySessionUsers(sessionId int64, req *dto.QuerySessionUsersReq, claims baseDto.ThkClaims) (*dto.QuerySessionUsersRes, error) {
 	url := fmt.Sprintf("%s%s/%d/user?count=%d&m_time=%d", d.endpoint, sessionUrl, sessionId, req.Count, req.MTime)
 	if req.Role != nil {
 		url += fmt.Sprintf("&role=%d", *req.Role)
 	}
-	res, errRequest := d.client.R().
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
 		SetHeader("Content-Type", jsonContentType).
 		Get(url)
 	if errRequest != nil {
@@ -98,10 +114,15 @@ func (d defaultMsgApi) QuerySessionUsers(sessionId int64, req *dto.QuerySessionU
 	}
 }
 
-func (d defaultMsgApi) QuerySessionUser(sessionId, userId int64) (*dto.SessionUser, error) {
+func (d defaultMsgApi) QuerySessionUser(sessionId, userId int64, claims baseDto.ThkClaims) (*dto.SessionUser, error) {
 	url := fmt.Sprintf("%s%s/%d/user/%d", d.endpoint, sessionUrl, sessionId, userId)
 
-	res, errRequest := d.client.R().
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
 		SetHeader("Content-Type", jsonContentType).
 		Get(url)
 	if errRequest != nil {
@@ -133,14 +154,19 @@ func (d defaultMsgApi) QuerySessionUser(sessionId, userId int64) (*dto.SessionUs
 	}
 }
 
-func (d defaultMsgApi) DelSessionUser(sessionId int64, req *dto.SessionDelUserReq) error {
+func (d defaultMsgApi) DelSessionUser(sessionId int64, req *dto.SessionDelUserReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
 		d.logger.Errorf("DelSessionUser: %v %v", req, err)
 		return err
 	}
 	url := fmt.Sprintf("%s%s/%d/user", d.endpoint, sessionUrl, sessionId)
-	res, errRequest := d.client.R().
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
 		SetHeader("Content-Type", jsonContentType).
 		SetBody(dataBytes).
 		Delete(url)
@@ -157,14 +183,19 @@ func (d defaultMsgApi) DelSessionUser(sessionId int64, req *dto.SessionDelUserRe
 	}
 }
 
-func (d defaultMsgApi) UpdateSessionUser(sessionId int64, req *dto.SessionUserUpdateReq) error {
+func (d defaultMsgApi) UpdateSessionUser(sessionId int64, req *dto.SessionUserUpdateReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
 		d.logger.Errorf("UpdateSessionUser: %v %v", req, err)
 		return err
 	}
 	url := fmt.Sprintf("%s%s/%d/user", d.endpoint, sessionUrl, sessionId)
-	res, errRequest := d.client.R().
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
 		SetHeader("Content-Type", jsonContentType).
 		SetBody(dataBytes).
 		Put(url)
@@ -181,14 +212,19 @@ func (d defaultMsgApi) UpdateSessionUser(sessionId int64, req *dto.SessionUserUp
 	}
 }
 
-func (d defaultMsgApi) AddSessionUser(sessionId int64, req *dto.SessionAddUserReq) error {
+func (d defaultMsgApi) AddSessionUser(sessionId int64, req *dto.SessionAddUserReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
 		d.logger.Errorf("AddSessionUser: %v %v", req, err)
 		return err
 	}
 	url := fmt.Sprintf("%s%s/%d/user", d.endpoint, sessionUrl, sessionId)
-	res, errRequest := d.client.R().
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
 		SetHeader("Content-Type", jsonContentType).
 		SetBody(dataBytes).
 		Post(url)
@@ -205,14 +241,19 @@ func (d defaultMsgApi) AddSessionUser(sessionId int64, req *dto.SessionAddUserRe
 	}
 }
 
-func (d defaultMsgApi) CreateSession(req *dto.CreateSessionReq) (*dto.CreateSessionRes, error) {
+func (d defaultMsgApi) CreateSession(req *dto.CreateSessionReq, claims baseDto.ThkClaims) (*dto.CreateSessionRes, error) {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
 		d.logger.Errorf("CreateSession: %v %v", req, err)
 		return nil, err
 	}
 	url := fmt.Sprintf("%s%s", d.endpoint, sessionUrl)
-	res, errRequest := d.client.R().
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
 		SetHeader("Content-Type", jsonContentType).
 		SetBody(dataBytes).
 		Post(url)

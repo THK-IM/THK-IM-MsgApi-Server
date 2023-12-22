@@ -2,7 +2,9 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
+	baseMiddleware "github.com/thk-im/thk-im-base-server/middleware"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/logic"
@@ -14,26 +16,27 @@ import (
 func createSession(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionLogic(appCtx)
 	return func(ctx *gin.Context) {
+		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
 		var req dto.CreateSessionReq
 		if err := ctx.BindJSON(&req); err != nil {
-			appCtx.Logger().Errorf("createSession %s", err.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("createSession %s", err.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
-		appCtx.Logger().Info(req)
+		appCtx.Logger().WithFields(logrus.Fields(claims)).Info(req)
 		if req.Type == model.SingleSessionType && (req.EntityId == 0 || len(req.Members) != 0) {
-			appCtx.Logger().Errorf("createSession %d %d %v", req.Type, req.EntityId, req.Members)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("createSession %d %d %v", req.Type, req.EntityId, req.Members)
 			baseDto.ResponseBadRequest(ctx)
 			return
 		} else if (req.Type == model.GroupSessionType || req.Type == model.SuperGroupSessionType) && req.EntityId == 0 {
-			appCtx.Logger().Errorf("createSession %d %d", req.Type, req.EntityId)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("createSession %d %d", req.Type, req.EntityId)
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 
 		for _, member := range req.Members {
 			if member <= 0 {
-				appCtx.Logger().Errorf("createSession %d ", member)
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("createSession %d ", member)
 				baseDto.ResponseBadRequest(ctx)
 				return
 			}
@@ -42,17 +45,17 @@ func createSession(appCtx *app.Context) gin.HandlerFunc {
 		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 {
 			if requestUid != req.Members[0] {
-				appCtx.Logger().Errorf("createSession %d %d", requestUid, req.Members[0])
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("createSession %d %d", requestUid, req.Members[0])
 				baseDto.ResponseBadRequest(ctx)
 				return
 			}
 		}
 
-		if resp, err := l.CreateSession(req); err != nil {
-			appCtx.Logger().Errorf("createSession %s", err.Error())
+		if resp, err := l.CreateSession(req, claims); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("createSession %s", err.Error())
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			appCtx.Logger().Infof("updateSession %v %v", req, resp)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("updateSession %v %v", req, resp)
 			baseDto.ResponseSuccess(ctx, resp)
 		}
 	}
@@ -61,21 +64,22 @@ func createSession(appCtx *app.Context) gin.HandlerFunc {
 func updateSession(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionLogic(appCtx)
 	return func(ctx *gin.Context) {
+		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
 		var req dto.UpdateSessionReq
 		if err := ctx.ShouldBindJSON(&req); err != nil {
-			appCtx.Logger().Errorf("updateSession %s", err.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateSession %s", err.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		if req.Mute != nil {
 			if *req.Mute != 0 && *req.Mute != 1 {
-				appCtx.Logger().Errorf("updateSession %d", *req.Mute)
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateSession %d", *req.Mute)
 				baseDto.ResponseBadRequest(ctx)
 				return
 			}
 		}
 		if id, err := strconv.Atoi(ctx.Param("id")); err != nil {
-			appCtx.Logger().Errorf("updateSession %s", err.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateSession %s", err.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		} else {
@@ -88,18 +92,18 @@ func updateSession(appCtx *app.Context) gin.HandlerFunc {
 				return
 			} else {
 				if sessionUser.Role == model.SessionMember {
-					appCtx.Logger().Errorf("updateSession %d", sessionUser.Role)
+					appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateSession %d", sessionUser.Role)
 					baseDto.ResponseForbidden(ctx)
 					return
 				}
 			}
 		}
 
-		if err := l.UpdateSession(req); err != nil {
-			appCtx.Logger().Errorf("updateSession %s", err.Error())
+		if err := l.UpdateSession(req, claims); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateSession %s", err.Error())
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			appCtx.Logger().Infof("updateSession %v", req)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("updateSession %v", req)
 			baseDto.ResponseSuccess(ctx, nil)
 		}
 	}
@@ -108,15 +112,16 @@ func updateSession(appCtx *app.Context) gin.HandlerFunc {
 func deleteSession(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionLogic(appCtx)
 	return func(ctx *gin.Context) {
+		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
 		var req dto.DelSessionReq
 		if err := ctx.ShouldBindJSON(&req); err != nil {
-			appCtx.Logger().Errorf("deleteSession %s", err.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSession %s", err.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 
 		if id, err := strconv.Atoi(ctx.Param("id")); err != nil {
-			appCtx.Logger().Errorf("deleteSession %s", err.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSession %s", err.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		} else {
@@ -129,22 +134,22 @@ func deleteSession(appCtx *app.Context) gin.HandlerFunc {
 				return
 			} else {
 				if sessionUser.Role == model.SessionMember {
-					appCtx.Logger().Errorf("deleteSession %d", sessionUser.Role)
+					appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSession %d", sessionUser.Role)
 					baseDto.ResponseForbidden(ctx)
 					return
 				} else if sessionUser.Type == model.SingleSessionType {
-					appCtx.Logger().Errorf("deleteSession %d", sessionUser.Type)
+					appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSession %d", sessionUser.Type)
 					baseDto.ResponseBadRequest(ctx)
 					return
 				}
 			}
 		}
 
-		if err := l.DelSession(req); err != nil {
-			appCtx.Logger().Errorf("deleteSession %s", err.Error())
+		if err := l.DelSession(req, claims); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSession %s", err.Error())
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			appCtx.Logger().Infof("deleteSession %v", req)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("deleteSession %v", req)
 			baseDto.ResponseSuccess(ctx, nil)
 		}
 	}
@@ -153,29 +158,30 @@ func deleteSession(appCtx *app.Context) gin.HandlerFunc {
 func updateUserSession(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionLogic(appCtx)
 	return func(ctx *gin.Context) {
+		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
 		var req dto.UpdateUserSessionReq
 		if err := ctx.ShouldBindJSON(&req); err != nil {
-			appCtx.Logger().Errorf("updateUserSession %s", err.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateUserSession %s", err.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		if req.Status != nil && (*req.Status < 0 || *req.Status > 3) {
-			appCtx.Logger().Errorf("updateUserSession %d", req.Status)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateUserSession %d", req.Status)
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
-			appCtx.Logger().Errorf("updateUserSession %d %d", requestUid, req.UId)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateUserSession %d %d", requestUid, req.UId)
 			baseDto.ResponseForbidden(ctx)
 			return
 		}
 
-		if err := l.UpdateUserSession(req); err != nil {
-			appCtx.Logger().Errorf("updateUserSession %s", err.Error())
+		if err := l.UpdateUserSession(req, claims); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateUserSession %s", err.Error())
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			appCtx.Logger().Infof("updateUserSession %v", req)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("updateUserSession %v", req)
 			baseDto.ResponseSuccess(ctx, nil)
 		}
 	}
@@ -184,24 +190,25 @@ func updateUserSession(appCtx *app.Context) gin.HandlerFunc {
 func getUserSessions(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionLogic(appCtx)
 	return func(ctx *gin.Context) {
+		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
 		var req dto.GetUserSessionsReq
 		if err := ctx.ShouldBindQuery(&req); err != nil {
-			appCtx.Logger().Errorf("getUserSessions %s", err.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getUserSessions %s", err.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 && requestUid != req.UId {
-			appCtx.Logger().Errorf("getUserSessions %d %d", requestUid, req.UId)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getUserSessions %d %d", requestUid, req.UId)
 			baseDto.ResponseForbidden(ctx)
 			return
 		}
 
-		if resp, err := l.GetUserSessions(req); err != nil {
-			appCtx.Logger().Errorf("getUserSessions %v %v", req, err)
+		if resp, err := l.GetUserSessions(req, claims); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getUserSessions %v %v", req, err)
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			appCtx.Logger().Infof("getUserSessions %v %v", req, resp)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("getUserSessions %v %v", req, resp)
 			baseDto.ResponseSuccess(ctx, resp)
 		}
 	}
@@ -210,6 +217,7 @@ func getUserSessions(appCtx *app.Context) gin.HandlerFunc {
 func getUserSession(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionLogic(appCtx)
 	return func(ctx *gin.Context) {
+		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
 		var (
 			uid = ctx.Param("uid")
 			sid = ctx.Param("sid")
@@ -217,29 +225,29 @@ func getUserSession(appCtx *app.Context) gin.HandlerFunc {
 
 		iUid, errUId := strconv.ParseInt(uid, 10, 64)
 		if errUId != nil {
-			appCtx.Logger().Errorf("getUserSession %s", errUId.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getUserSession %s", errUId.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 
 		iSid, errSId := strconv.ParseInt(sid, 10, 64)
 		if errSId != nil {
-			appCtx.Logger().Errorf("getUserSession %s", errSId.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getUserSession %s", errSId.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 && requestUid != iUid {
-			appCtx.Logger().Errorf("getUserSession %d %d", requestUid, iUid)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getUserSession %d %d", requestUid, iUid)
 			baseDto.ResponseForbidden(ctx)
 			return
 		}
 
-		if res, err := l.GetUserSession(iUid, iSid); err != nil {
-			appCtx.Logger().Errorf("getUserSession %d %d %v", iUid, iSid, err)
+		if res, err := l.GetUserSession(iUid, iSid, claims); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getUserSession %d %d %v", iUid, iSid, err)
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			appCtx.Logger().Info("getUserSession %d %d %v", iUid, iSid, res)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Info("getUserSession %d %d %v", iUid, iSid, res)
 			baseDto.ResponseSuccess(ctx, res)
 		}
 	}
@@ -248,35 +256,36 @@ func getUserSession(appCtx *app.Context) gin.HandlerFunc {
 func getSessionMessages(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewMessageLogic(appCtx)
 	return func(ctx *gin.Context) {
+		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
 		var (
 			sessionId = ctx.Param("id")
 		)
 		iSessionId, errSession := strconv.ParseInt(sessionId, 10, 64)
 		if errSession != nil {
-			appCtx.Logger().Errorf("getSessionMessages %s", errSession.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getSessionMessages %s", errSession.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 {
 			if _, err := appCtx.SessionUserModel().FindSessionUser(iSessionId, requestUid); err != nil {
-				appCtx.Logger().Errorf("getSessionMessages %s", err.Error())
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getSessionMessages %s", err.Error())
 				baseDto.ResponseForbidden(ctx)
 				return
 			}
 		}
 		var req dto.GetSessionMessageReq
 		if err := ctx.BindQuery(&req); err != nil {
-			appCtx.Logger().Errorf("getSessionMessages %s", err.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getSessionMessages %s", err.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		req.SId = iSessionId
-		if res, err := l.GetSessionMessages(req); err != nil {
-			appCtx.Logger().Errorf("getSessionMessages %v %s", req, err)
+		if res, err := l.GetSessionMessages(req, claims); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getSessionMessages %v %s", req, err)
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			appCtx.Logger().Errorf("getSessionMessages %v %v", req, res)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getSessionMessages %v %v", req, res)
 			baseDto.ResponseSuccess(ctx, res)
 		}
 	}
@@ -285,41 +294,42 @@ func getSessionMessages(appCtx *app.Context) gin.HandlerFunc {
 func deleteSessionMessage(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewMessageLogic(appCtx)
 	return func(ctx *gin.Context) {
+		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
 		var (
 			sessionId = ctx.Param("id")
 		)
 		iSessionId, errSessionId := strconv.ParseInt(sessionId, 10, 64)
 		if errSessionId != nil {
-			appCtx.Logger().Errorf("deleteSessionMessage %s", errSessionId.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSessionMessage %s", errSessionId.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		var req dto.DelSessionMessageReq
 		if err := ctx.BindJSON(&req); err != nil {
-			appCtx.Logger().Errorf("deleteSessionMessage %s", err.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSessionMessage %s", err.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 {
 			if sessionUser, err := appCtx.SessionUserModel().FindSessionUser(iSessionId, requestUid); err != nil {
-				appCtx.Logger().Errorf("deleteSessionMessage %s", err.Error())
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSessionMessage %s", err.Error())
 				baseDto.ResponseForbidden(ctx)
 				return
 			} else {
 				if sessionUser.Role != model.SessionOwner {
-					appCtx.Logger().Errorf("deleteSessionMessage %d %d %d", sessionUser.UserId, sessionUser.SessionId, sessionUser.Role)
+					appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSessionMessage %d %d %d", sessionUser.UserId, sessionUser.SessionId, sessionUser.Role)
 					baseDto.ResponseForbidden(ctx)
 					return
 				}
 			}
 		}
 		req.SId = iSessionId
-		if err := l.DelSessionMessage(&req); err != nil {
-			appCtx.Logger().Errorf("deleteSessionMessage %v %s", req, err)
+		if err := l.DelSessionMessage(&req, claims); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSessionMessage %v %s", req, err)
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			appCtx.Logger().Infof("deleteSessionMessage %v", req)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("deleteSessionMessage %v", req)
 			baseDto.ResponseSuccess(ctx, nil)
 		}
 	}
@@ -328,6 +338,7 @@ func deleteSessionMessage(appCtx *app.Context) gin.HandlerFunc {
 func deleteUserSession(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionLogic(appCtx)
 	return func(ctx *gin.Context) {
+		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
 		var (
 			uid = ctx.Param("uid")
 			sid = ctx.Param("sid")
@@ -335,31 +346,31 @@ func deleteUserSession(appCtx *app.Context) gin.HandlerFunc {
 
 		iUid, errUId := strconv.ParseInt(uid, 10, 64)
 		if errUId != nil {
-			appCtx.Logger().Errorf("deleteUserSession %s", errUId.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteUserSession %s", errUId.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 
 		iSid, errSId := strconv.ParseInt(sid, 10, 64)
 		if errSId != nil {
-			appCtx.Logger().Errorf("deleteUserSession %s", errSId.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteUserSession %s", errSId.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 && requestUid != iUid {
-			appCtx.Logger().Errorf("deleteUserSession %d %d", requestUid, iUid)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteUserSession %d %d", requestUid, iUid)
 			baseDto.ResponseForbidden(ctx)
 			return
 		}
 		req := dto.SessionDelUserReq{
 			UIds: []int64{iUid},
 		}
-		if err := l.DelSessionUser(iSid, true, req); err != nil {
-			appCtx.Logger().Errorf("deleteUserSession %v %s", req, err)
+		if err := l.DelSessionUser(iSid, true, req, claims); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteUserSession %v %s", req, err)
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			appCtx.Logger().Errorf("deleteUserSession %v", req)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteUserSession %v", req)
 			baseDto.ResponseSuccess(ctx, nil)
 		}
 	}

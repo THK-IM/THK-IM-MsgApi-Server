@@ -3,6 +3,8 @@ package logic
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
+	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	baseErrorx "github.com/thk-im/thk-im-base-server/errorx"
 	"github.com/thk-im/thk-im-base-server/event"
 	"github.com/thk-im/thk-im-base-server/utils"
@@ -58,9 +60,10 @@ func (l *MessageLogic) convUserMessage2Message(userMsg *model.UserMessage) *dto.
 	return &msg
 }
 
-func (l *MessageLogic) GetUserMessages(req dto.GetMessageReq) (*dto.GetMessageRes, error) {
+func (l *MessageLogic) GetUserMessages(req dto.GetMessageReq, claims baseDto.ThkClaims) (*dto.GetMessageRes, error) {
 	userMessages, err := l.appCtx.UserMessageModel().GetUserMessages(req.UId, req.CTime, req.Offset, req.Count)
 	if err != nil {
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("GetUserMessages %v, %v", req, err)
 		return nil, err
 	}
 	messages := make([]*dto.Message, 0)
@@ -71,12 +74,13 @@ func (l *MessageLogic) GetUserMessages(req dto.GetMessageReq) (*dto.GetMessageRe
 	return &dto.GetMessageRes{Data: messages}, nil
 }
 
-func (l *MessageLogic) GetSessionMessages(req dto.GetSessionMessageReq) (*dto.GetMessageRes, error) {
+func (l *MessageLogic) GetSessionMessages(req dto.GetSessionMessageReq, claims baseDto.ThkClaims) (*dto.GetMessageRes, error) {
 	msgIds := make([]int64, 0)
 	if req.MsgIds != "" {
 		strIds := strings.Split(req.MsgIds, ",")
 		for _, str := range strIds {
 			if id, err := strconv.ParseInt(str, 10, 64); err != nil {
+				l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("GetSessionMessages ParseInt err: %s %v", strIds, err)
 				return nil, err
 			} else {
 				msgIds = append(msgIds, id)
@@ -95,15 +99,18 @@ func (l *MessageLogic) GetSessionMessages(req dto.GetSessionMessageReq) (*dto.Ge
 	return &dto.GetMessageRes{Data: messages}, nil
 }
 
-func (l *MessageLogic) DelSessionMessage(req *dto.DelSessionMessageReq) error {
+func (l *MessageLogic) DelSessionMessage(req *dto.DelSessionMessageReq, claims baseDto.ThkClaims) error {
 	err := l.appCtx.SessionMessageModel().DelMessages(req.SId, req.MsgIds, req.TimeFrom, req.TimeTo)
+	if err != nil {
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("DelSessionMessage err: %v %v", req, err)
+	}
 	return err
 }
 
-func (l *MessageLogic) SendMessage(req dto.SendMessageReq) (*dto.SendMessageRes, error) {
+func (l *MessageLogic) SendMessage(req dto.SendMessageReq, claims baseDto.ThkClaims) (*dto.SendMessageRes, error) {
 	session, errSession := l.appCtx.SessionModel().FindSession(req.SId)
 	if errSession != nil || session.Id <= 0 {
-		l.appCtx.Logger().Error(errSession)
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("SendMessage FindSession %v, %v", req, errSession)
 		return nil, errorx.ErrSessionInvalid
 	}
 	// req.FUid为0是系统消息, 不需要校验是否能对session发送消息
@@ -137,11 +144,11 @@ func (l *MessageLogic) SendMessage(req dto.SendMessageReq) (*dto.SendMessageRes,
 		sessionMessage, errMessage = l.appCtx.SessionMessageModel().InsertMessage(
 			req.CId, req.FUid, req.SId, msgId, req.Body, req.ExtData, req.Type, req.AtUsers, req.RMsgId)
 		if errMessage != nil {
-			l.appCtx.Logger().Error(errMessage, req)
+			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("SendMessage InsertMessage %v, %v", errMessage, req)
 			return nil, errMessage
 		}
 	}
-	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(sessionMessage, session.Type, receivers); err != nil {
+	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(sessionMessage, session.Type, receivers, nil); err != nil {
 		return nil, errorx.ErrMessageDeliveryFailed
 	} else {
 		return &dto.SendMessageRes{
@@ -154,7 +161,7 @@ func (l *MessageLogic) SendMessage(req dto.SendMessageReq) (*dto.SendMessageRes,
 
 }
 
-func (l *MessageLogic) SendSysMessage(req dto.SendSysMessageReq) (*dto.SendSysMessageRes, error) {
+func (l *MessageLogic) SendSysMessage(req dto.SendSysMessageReq, claims baseDto.ThkClaims) (*dto.SendSysMessageRes, error) {
 	if req.Receivers == nil || len(req.Receivers) == 0 {
 		return nil, baseErrorx.ErrParamsError
 	}
@@ -176,7 +183,7 @@ func (l *MessageLogic) SendSysMessage(req dto.SendSysMessageReq) (*dto.SendSysMe
 		Deleted:    0,
 	}
 
-	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(sessionMessage, sessionType, req.Receivers); err != nil {
+	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(sessionMessage, sessionType, req.Receivers, claims); err != nil {
 		return nil, errorx.ErrMessageDeliveryFailed
 	} else {
 		return &dto.SendSysMessageRes{
@@ -189,7 +196,7 @@ func (l *MessageLogic) SendSysMessage(req dto.SendSysMessageReq) (*dto.SendSysMe
 
 }
 
-func (l *MessageLogic) publishSendMessageEvents(sessionMsg *model.SessionMessage, sessionType int, receivers []int64) ([]int64, []int64, error) {
+func (l *MessageLogic) publishSendMessageEvents(sessionMsg *model.SessionMessage, sessionType int, receivers []int64, claims baseDto.ThkClaims) ([]int64, []int64, error) {
 	userMsg := &dto.Message{
 		CId:     sessionMsg.ClientId,
 		MsgId:   sessionMsg.MsgId,
@@ -204,20 +211,20 @@ func (l *MessageLogic) publishSendMessageEvents(sessionMsg *model.SessionMessage
 	}
 	msgJson, err := json.Marshal(userMsg)
 	if err != nil {
-		l.appCtx.Logger().Error(err)
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("publishSendMessageEvents json err", err)
 		return nil, nil, err
 	}
 	msgJsonStr := string(msgJson)
 	deliverKey := fmt.Sprintf("session-%d", userMsg.SId)
-	onlineUIds, offlineUIds, errPubPush := l.pubPushMessageEvent(event.SignalNewMessage, msgJsonStr, receivers, deliverKey)
+	onlineUIds, offlineUIds, errPubPush := l.pubPushMessageEvent(event.SignalNewMessage, msgJsonStr, receivers, deliverKey, claims)
 	if errPubPush != nil {
-		l.appCtx.Logger().Error("pubPushMessageEvent, err:", errPubPush)
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("pubPushMessageEvent, publish err:", errPubPush)
 		return nil, nil, errPubPush
 	}
 	if sessionType != model.SuperGroupSessionType {
 		errPubSave := l.pubSaveMsgEvent(msgJsonStr, receivers, userMsg.SId)
 		if errPubSave != nil {
-			l.appCtx.Logger().Error("pubSaveMsgEvent, err:", errPubSave)
+			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("pubSaveMsgEvent, err:", errPubSave)
 			return nil, nil, errPubPush
 		}
 	}
@@ -225,10 +232,10 @@ func (l *MessageLogic) publishSendMessageEvents(sessionMsg *model.SessionMessage
 }
 
 // PushMessage 业务消息推送
-func (l *MessageLogic) PushMessage(req dto.PushMessageReq) (*dto.PushMessageRes, error) {
+func (l *MessageLogic) PushMessage(req dto.PushMessageReq, claims baseDto.ThkClaims) (*dto.PushMessageRes, error) {
 	deliverKey := "push"
 	// 在线推送
-	onlineUIds, offlineUIds, err := l.pubPushMessageEvent(req.Type, req.Body, req.UIds, deliverKey)
+	onlineUIds, offlineUIds, err := l.pubPushMessageEvent(req.Type, req.Body, req.UIds, deliverKey, claims)
 	if err == nil {
 		rsp := &dto.PushMessageRes{}
 		rsp.OnlineUIds = onlineUIds
@@ -251,7 +258,7 @@ func (l *MessageLogic) pubSaveMsgEvent(msgBody string, receivers []int64, sessio
 }
 
 // 发布推送消息
-func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, deliverKey string) ([]int64, []int64, error) {
+func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, deliverKey string, claims baseDto.ThkClaims) ([]int64, []int64, error) {
 	uidOnlineKeys := make([]string, 0)
 	for _, uid := range uIds {
 		uidOnlineKey := fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, uid)
@@ -261,7 +268,7 @@ func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, del
 	onlineUsers, err := utils.BatchGet(l.appCtx.RedisCache(), uidOnlineKeys)
 	if err != nil {
 		// 如果查询报错 默认全部用户为离线
-		l.appCtx.Logger().Error("get userOnlineStatus error:", err)
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("pubPushMessageEvents error: %v", err)
 	} else {
 		for index, onlineUser := range onlineUsers {
 			if onlineUser != nil {
@@ -270,7 +277,7 @@ func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, del
 		}
 	}
 
-	onlineUIdMap := make(map[int64]bool, 0)
+	onlineUIdMap := make(map[int64]bool)
 	for _, uid := range onlineUIds {
 		onlineUIdMap[uid] = true
 	}
@@ -294,6 +301,10 @@ func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, del
 	return onlineUIds, offlineUIds, err
 }
 
-func (l *MessageLogic) DeleteUserMessage(req *dto.DeleteMessageReq) error {
-	return l.appCtx.UserMessageModel().DeleteMessages(req.UId, req.SId, req.MessageIds, req.TimeFrom, req.TimeTo)
+func (l *MessageLogic) DeleteUserMessage(req *dto.DeleteMessageReq, claims baseDto.ThkClaims) error {
+	err := l.appCtx.UserMessageModel().DeleteMessages(req.UId, req.SId, req.MessageIds, req.TimeFrom, req.TimeTo)
+	if err != nil {
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("DeleteUserMessage err: %v %v", req, err)
+	}
+	return err
 }

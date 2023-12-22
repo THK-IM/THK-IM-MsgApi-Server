@@ -11,7 +11,7 @@ import (
 
 func RegisterMsgApiHandlers(appCtx *app.Context) {
 	httpEngine := appCtx.HttpEngine()
-	ipAuth := middleware.WhiteIpAuth(appCtx.Context)
+	ipAuth := middleware.WhiteIpAuth(appCtx.Config().IpWhiteList, appCtx.Logger())
 	userApi := appCtx.UserApi()
 	userTokenAuth := userSdk.UserTokenAuth(userApi, appCtx.Logger())
 

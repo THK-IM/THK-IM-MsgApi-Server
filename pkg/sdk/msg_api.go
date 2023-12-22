@@ -4,6 +4,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/thk-im/thk-im-base-server/conf"
+	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"net/http"
 	"time"
@@ -15,23 +16,23 @@ const (
 
 type (
 	SystemApi interface {
-		PushMessage(req *dto.PushMessageReq) (*dto.PushMessageRes, error)
-		SendSysMessage(req *dto.SendSysMessageReq) (*dto.SendSysMessageRes, error)
-		SendSessionMessage(req *dto.SendMessageReq) (*dto.SendMessageRes, error)
-		KickOffUser(req *dto.KickUserReq) error
-		QueryUsersOnlineStatus(req *dto.QueryUsersOnlineStatusReq) (*dto.QueryUsersOnlineStatusRes, error)
-		PostUserOnlineStatus(req *dto.PostUserOnlineReq) error
+		PushMessage(req *dto.PushMessageReq, claims baseDto.ThkClaims) (*dto.PushMessageRes, error)
+		SendSysMessage(req *dto.SendSysMessageReq, claims baseDto.ThkClaims) (*dto.SendSysMessageRes, error)
+		SendSessionMessage(req *dto.SendMessageReq, claims baseDto.ThkClaims) (*dto.SendMessageRes, error)
+		KickOffUser(req *dto.KickUserReq, claims baseDto.ThkClaims) error
+		QueryUsersOnlineStatus(req *dto.QueryUsersOnlineStatusReq, claims baseDto.ThkClaims) (*dto.QueryUsersOnlineStatusRes, error)
+		PostUserOnlineStatus(req *dto.PostUserOnlineReq, claims baseDto.ThkClaims) error
 	}
 
 	SessionApi interface {
-		DelSession(sessionId int64, req *dto.DelSessionReq) error
-		UpdateSession(sessionId int64, req *dto.UpdateSessionReq) error
-		QuerySessionUsers(sessionId int64, req *dto.QuerySessionUsersReq) (*dto.QuerySessionUsersRes, error)
-		QuerySessionUser(sessionId, userId int64) (*dto.SessionUser, error)
-		UpdateSessionUser(sessionId int64, req *dto.SessionUserUpdateReq) error
-		DelSessionUser(sessionId int64, req *dto.SessionDelUserReq) error
-		AddSessionUser(sessionId int64, req *dto.SessionAddUserReq) error
-		CreateSession(req *dto.CreateSessionReq) (*dto.CreateSessionRes, error)
+		DelSession(sessionId int64, req *dto.DelSessionReq, claims baseDto.ThkClaims) error
+		UpdateSession(sessionId int64, req *dto.UpdateSessionReq, claims baseDto.ThkClaims) error
+		QuerySessionUsers(sessionId int64, req *dto.QuerySessionUsersReq, claims baseDto.ThkClaims) (*dto.QuerySessionUsersRes, error)
+		QuerySessionUser(sessionId, userId int64, claims baseDto.ThkClaims) (*dto.SessionUser, error)
+		UpdateSessionUser(sessionId int64, req *dto.SessionUserUpdateReq, claims baseDto.ThkClaims) error
+		DelSessionUser(sessionId int64, req *dto.SessionDelUserReq, claims baseDto.ThkClaims) error
+		AddSessionUser(sessionId int64, req *dto.SessionAddUserReq, claims baseDto.ThkClaims) error
+		CreateSession(req *dto.CreateSessionReq, claims baseDto.ThkClaims) (*dto.CreateSessionRes, error)
 	}
 
 	MsgApi interface {

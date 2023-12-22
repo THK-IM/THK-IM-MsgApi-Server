@@ -2,6 +2,8 @@ package logic
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
+	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	baseErrorx "github.com/thk-im/thk-im-base-server/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
@@ -19,7 +21,7 @@ func NewSessionLogic(appCtx *app.Context) SessionLogic {
 	}
 }
 
-func (l *SessionLogic) CreateSession(req dto.CreateSessionReq) (*dto.CreateSessionRes, error) {
+func (l *SessionLogic) CreateSession(req dto.CreateSessionReq, claims baseDto.ThkClaims) (*dto.CreateSessionRes, error) {
 	lockKey := fmt.Sprintf(sessionCreateLockKey, l.appCtx.Config().Name, req.UId, req.EntityId)
 	locker := l.appCtx.NewLocker(lockKey, 1000, 1000)
 	success, lockErr := locker.Lock()
@@ -28,7 +30,7 @@ func (l *SessionLogic) CreateSession(req dto.CreateSessionReq) (*dto.CreateSessi
 	}
 	defer func() {
 		if success, lockErr = locker.Release(); lockErr != nil {
-			l.appCtx.Logger().Errorf("release locker success: %t, error: %s", success, lockErr.Error())
+			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("release locker success: %t, error: %s", success, lockErr.Error())
 		}
 	}()
 
@@ -169,7 +171,7 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 	return res, nil
 }
 
-func (l *SessionLogic) UpdateSession(req dto.UpdateSessionReq) error {
+func (l *SessionLogic) UpdateSession(req dto.UpdateSessionReq, claims baseDto.ThkClaims) error {
 	lockKey := fmt.Sprintf(sessionUpdateLockKey, l.appCtx.Config().Name, req.Id)
 	locker := l.appCtx.NewLocker(lockKey, 1000, 1000)
 	success, lockErr := locker.Lock()
@@ -178,7 +180,7 @@ func (l *SessionLogic) UpdateSession(req dto.UpdateSessionReq) error {
 	}
 	defer func() {
 		if success, lockErr = locker.Release(); lockErr != nil {
-			l.appCtx.Logger().Errorf("release locker success: %t, error: %s", success, lockErr.Error())
+			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("release locker success: %t, error: %s", success, lockErr.Error())
 		}
 	}()
 	err := l.appCtx.SessionModel().UpdateSession(req.Id, req.Name, req.Remark, req.Mute, req.ExtData)
@@ -206,11 +208,15 @@ func (l *SessionLogic) UpdateSession(req dto.UpdateSessionReq) error {
 	return l.appCtx.UserSessionModel().UpdateUserSession(uIds, req.Id, req.Name, req.Remark, mute, req.ExtData, nil, nil, nil, nil)
 }
 
-func (l *SessionLogic) DelSession(req dto.DelSessionReq) error {
-	return l.appCtx.SessionUserModel().DelSession(req.Id)
+func (l *SessionLogic) DelSession(req dto.DelSessionReq, claims baseDto.ThkClaims) error {
+	err := l.appCtx.SessionUserModel().DelSession(req.Id)
+	if err != nil {
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("DelSession %v  %s", req, err)
+	}
+	return err
 }
 
-func (l *SessionLogic) UpdateUserSession(req dto.UpdateUserSessionReq) (err error) {
+func (l *SessionLogic) UpdateUserSession(req dto.UpdateUserSessionReq, claims baseDto.ThkClaims) (err error) {
 	lockKey := fmt.Sprintf(userSessionUpdateLockKey, l.appCtx.Config().Name, req.UId, req.SId)
 	locker := l.appCtx.NewLocker(lockKey, 1000, 1000)
 	success, lockErr := locker.Lock()
@@ -219,21 +225,22 @@ func (l *SessionLogic) UpdateUserSession(req dto.UpdateUserSessionReq) (err erro
 	}
 	defer func() {
 		if success, lockErr = locker.Release(); lockErr != nil {
-			l.appCtx.Logger().Errorf("release locker success: %t, error: %s", success, lockErr.Error())
+			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("release locker success: %t, error: %s", success, lockErr.Error())
 		}
 	}()
 	err = l.appCtx.UserSessionModel().UpdateUserSession([]int64{req.UId}, req.SId, nil, nil, nil, nil, req.Top, req.Status, nil, req.ParentId)
 	if err == nil {
 		err = l.appCtx.SessionUserModel().UpdateUser(req.SId, []int64{req.UId}, nil, req.Status, nil)
 	} else {
-		l.appCtx.Logger().Error("UpdateUserSession, err", err)
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("UpdateUserSession, %v %v", req, err)
 	}
 	return
 }
 
-func (l *SessionLogic) GetUserSessions(req dto.GetUserSessionsReq) (*dto.GetUserSessionsRes, error) {
+func (l *SessionLogic) GetUserSessions(req dto.GetUserSessionsReq, claims baseDto.ThkClaims) (*dto.GetUserSessionsRes, error) {
 	userSessions, err := l.appCtx.UserSessionModel().GetUserSessions(req.UId, req.MTime, req.Offset, req.Count)
 	if err != nil {
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("GetUserSessions, %v %v", req, err)
 		return nil, err
 	}
 	dtoUserSessions := make([]*dto.UserSession, 0)
@@ -244,9 +251,10 @@ func (l *SessionLogic) GetUserSessions(req dto.GetUserSessionsReq) (*dto.GetUser
 	return &dto.GetUserSessionsRes{Data: dtoUserSessions}, nil
 }
 
-func (l *SessionLogic) GetUserSession(uid, sid int64) (*dto.UserSession, error) {
+func (l *SessionLogic) GetUserSession(uid, sid int64, claims baseDto.ThkClaims) (*dto.UserSession, error) {
 	userSession, err := l.appCtx.UserSessionModel().GetUserSession(uid, sid)
 	if err != nil {
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("GetUserSession, %v %v %v", uid, sid, err)
 		return nil, err
 	}
 	dtoUserSession := l.convUserSession(userSession)

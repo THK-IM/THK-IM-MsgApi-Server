@@ -2,6 +2,7 @@ package logic
 
 import (
 	"fmt"
+	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	baseErrorx "github.com/thk-im/thk-im-base-server/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
@@ -22,7 +23,7 @@ func NewSessionObjectLogic(appCtx *app.Context) SessionObjectLogic {
 	}
 }
 
-func (l *SessionObjectLogic) GetUploadParams(req dto.GetUploadParamsReq) (*dto.GetUploadParamsRes, error) {
+func (l *SessionObjectLogic) GetUploadParams(req dto.GetUploadParamsReq, claims baseDto.ThkClaims) (*dto.GetUploadParamsRes, error) {
 	// 鉴权
 	su, errSu := l.appCtx.SessionUserModel().FindSessionUser(req.SId, req.UId)
 	if errSu != nil || su.UserId <= 0 {
@@ -52,7 +53,7 @@ func (l *SessionObjectLogic) GetUploadParams(req dto.GetUploadParamsReq) (*dto.G
 
 }
 
-func (l *SessionObjectLogic) GetObjectByKey(req dto.GetDownloadUrlReq) (*string, error) {
+func (l *SessionObjectLogic) GetObjectByKey(req dto.GetDownloadUrlReq, claims baseDto.ThkClaims) (*string, error) {
 	var (
 		object *model.Object
 		err    error

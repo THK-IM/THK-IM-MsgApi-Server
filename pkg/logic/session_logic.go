@@ -208,6 +208,37 @@ func (l *SessionLogic) UpdateSession(req dto.UpdateSessionReq, claims baseDto.Th
 	return l.appCtx.UserSessionModel().UpdateUserSession(uIds, req.Id, req.Name, req.Remark, mute, req.ExtData, nil, nil, nil, nil)
 }
 
+func (l *SessionLogic) UpdateSessionType(req dto.UpdateSessionTypeReq, claims baseDto.ThkClaims) error {
+	lockKey := fmt.Sprintf(sessionUpdateLockKey, l.appCtx.Config().Name, req.Id)
+	locker := l.appCtx.NewLocker(lockKey, 1000, 1000)
+	success, lockErr := locker.Lock()
+	if lockErr != nil || !success {
+		return baseErrorx.ErrServerBusy
+	}
+	defer func() {
+		if success, lockErr = locker.Release(); lockErr != nil {
+			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("release locker success: %t, error: %s", success, lockErr.Error())
+		}
+	}()
+	err := l.appCtx.SessionModel().UpdateSessionType(req.Id, req.Type)
+	if err != nil {
+		return err
+	}
+	sessionUsers, errSessionUsers := l.appCtx.SessionUserModel().FindAllSessionUsers(req.Id)
+	if errSessionUsers != nil {
+		return errSessionUsers
+	}
+	uIds := make([]int64, 0)
+	for _, su := range sessionUsers {
+		uIds = append(uIds, su.UserId)
+	}
+	err = l.appCtx.UserSessionModel().UpdateUserSessionType(uIds, req.Id, req.Type)
+	if err == nil {
+		err = l.appCtx.SessionUserModel().UpdateType(req.Id, req.Type)
+	}
+	return err
+}
+
 func (l *SessionLogic) DelSession(req dto.DelSessionReq, claims baseDto.ThkClaims) error {
 	err := l.appCtx.SessionUserModel().DelSession(req.Id)
 	if err != nil {

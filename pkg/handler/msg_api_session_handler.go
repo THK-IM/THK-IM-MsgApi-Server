@@ -61,6 +61,41 @@ func createSession(appCtx *app.Context) gin.HandlerFunc {
 	}
 }
 
+func updateSessionType(appCtx *app.Context) gin.HandlerFunc {
+	l := logic.NewSessionLogic(appCtx)
+	return func(ctx *gin.Context) {
+		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
+		var req dto.UpdateSessionTypeReq
+		if err := ctx.ShouldBindJSON(&req); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateSessionType %s", err.Error())
+			baseDto.ResponseBadRequest(ctx)
+			return
+		}
+
+		requestUid := ctx.GetInt64(userSdk.UidKey)
+		if requestUid > 0 {
+			if sessionUser, err := appCtx.SessionUserModel().FindSessionUser(req.Id, requestUid); err != nil {
+				baseDto.ResponseForbidden(ctx)
+				return
+			} else {
+				if sessionUser.Role == model.SessionMember {
+					appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateSessionType %d", sessionUser.Role)
+					baseDto.ResponseForbidden(ctx)
+					return
+				}
+			}
+		}
+
+		if err := l.UpdateSessionType(req, claims); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateSessionType %s", err.Error())
+			baseDto.ResponseInternalServerError(ctx, err)
+		} else {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("updateSessionType %v", req)
+			baseDto.ResponseSuccess(ctx, nil)
+		}
+	}
+}
+
 func updateSession(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionLogic(appCtx)
 	return func(ctx *gin.Context) {

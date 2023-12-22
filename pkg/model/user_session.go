@@ -41,6 +41,7 @@ type (
 
 	UserSessionModel interface {
 		FindUserSessionByEntityId(userId, entityId int64, sessionType int, containDeleted bool) (*UserSession, error)
+		UpdateUserSessionType(userIds []int64, sessionId int64, sessionType int) error
 		UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute, extData *string, top *int64, status, role *int, parentId *int64) error
 		FindEntityIdsInUserSession(userId, sessionId int64) []int64
 		GetUserSessions(userId, mTime int64, offset, count int) ([]*UserSession, error)
@@ -66,7 +67,41 @@ func (d defaultUserSessionModel) FindUserSessionByEntityId(userId, entityId int6
 	return userSession, err
 }
 
+func (d defaultUserSessionModel) UpdateUserSessionType(userIds []int64, sessionId int64, sessionType int) (err error) {
+	// 分表uid数组
+	sharedUIds := make(map[int64][]int64)
+	for _, uId := range userIds {
+		share := uId % d.shards
+		if sharedUIds[share] == nil {
+			sharedUIds[share] = make([]int64, 0)
+		}
+		sharedUIds[share] = append(sharedUIds[share], uId)
+	}
+
+	tx := d.db.Begin()
+	defer func() {
+		if err == nil {
+			tx.Commit()
+		} else {
+			tx.Rollback()
+		}
+	}()
+
+	now := time.Now().UnixMilli()
+	for k, v := range sharedUIds {
+		sql := fmt.Sprintf("update %s set type = ?, update_time = ? where session_id = ? and user_id in ?  ", d.GenUserSessionTableName(k))
+		err = tx.Exec(sql, sessionType, now, sessionId, v).Error
+		if err != nil {
+			return err
+		}
+	}
+	return
+}
+
 func (d defaultUserSessionModel) UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute, extData *string, top *int64, status, role *int, parentId *int64) (err error) {
+	if sessionName == nil && sessionRemark == nil && top == nil && status == nil && mute == nil && role == nil {
+		return
+	}
 	// 分表uid数组
 	sharedUIds := make(map[int64][]int64)
 	for _, uId := range userIds {
@@ -87,9 +122,6 @@ func (d defaultUserSessionModel) UpdateUserSession(userIds []int64, sessionId in
 	}()
 
 	for k, v := range sharedUIds {
-		if sessionName == nil && sessionRemark == nil && top == nil && status == nil && mute == nil && role == nil {
-			continue
-		}
 		sqlBuffer := bytes.Buffer{}
 		sqlBuffer.WriteString(fmt.Sprintf("update %s set ", d.GenUserSessionTableName(k)))
 		if sessionName != nil {
@@ -123,7 +155,7 @@ func (d defaultUserSessionModel) UpdateUserSession(userIds []int64, sessionId in
 			return err
 		}
 	}
-	return nil
+	return
 }
 
 func (d defaultUserSessionModel) FindEntityIdsInUserSession(userId, sessionId int64) []int64 {

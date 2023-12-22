@@ -28,6 +28,7 @@ type (
 	}
 
 	SessionModel interface {
+		UpdateSessionType(sessionId int64, sessionType int) error
 		UpdateSession(sessionId int64, name, remark *string, mute *int, extData *string) error
 		FindSession(sessionId int64) (*Session, error)
 		CreateEmptySession(sessionType int, extData *string, name string, remark string) (*Session, error)
@@ -40,6 +41,13 @@ type (
 		snowflakeNode *snowflake.Node
 	}
 )
+
+func (d defaultSessionModel) UpdateSessionType(sessionId int64, sessionType int) error {
+	updateMap := make(map[string]interface{})
+	updateMap["type"] = sessionType
+	updateMap["update_time"] = time.Now().UnixMilli()
+	return d.db.Table(d.genSessionTableName(sessionId)).Where("id = ?", sessionId).Updates(updateMap).Error
+}
 
 func (d defaultSessionModel) UpdateSession(sessionId int64, name, remark *string, mute *int, extData *string) error {
 	if name == nil && remark == nil && mute == nil {

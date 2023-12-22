@@ -35,6 +35,11 @@ type UpdateSessionReq struct {
 	ExtData *string `json:"ext_data"`
 }
 
+type UpdateSessionTypeReq struct {
+	Id   int64 `json:"id"`
+	Type int   `json:"type"`
+}
+
 type DelSessionReq struct {
 	Id int64 `json:"id"`
 }

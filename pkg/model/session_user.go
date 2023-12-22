@@ -42,6 +42,7 @@ type (
 		FindUIdsInSessionContainStatus(sessionId int64, status int, uIds []int64) []int64
 		AddUser(session *Session, entityIds []int64, userIds []int64, role []int, maxCount int) ([]*UserSession, error)
 		DelUser(session *Session, userIds []int64) (err error)
+		UpdateType(sessionId int64, sessionType int) (err error)
 		UpdateUser(sessionId int64, userIds []int64, role, status *int, mute *string) (err error)
 		DelSession(sessionId int64) error
 	}
@@ -243,6 +244,12 @@ func (d defaultSessionUserModel) DelUser(session *Session, userIds []int64) (err
 		}
 	}
 	return nil
+}
+
+func (d defaultSessionUserModel) UpdateType(sessionId int64, sessionType int) (err error) {
+	t := time.Now().UnixMilli()
+	sql := fmt.Sprintf("update %s set type = ?, update_time = ? where session_id = ? ", d.genSessionUserTableName(sessionId))
+	return d.db.Exec(sql, sessionType, t, sessionId).Error
 }
 
 func (d defaultSessionUserModel) UpdateUser(sessionId int64, userIds []int64, role, status *int, mute *string) (err error) {

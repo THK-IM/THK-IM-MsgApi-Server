@@ -61,6 +61,35 @@ func (d defaultMsgApi) CreateSession(req *dto.CreateSessionReq, claims baseDto.T
 	}
 }
 
+func (d defaultMsgApi) UpdateSessionType(req *dto.UpdateSessionTypeReq, claims baseDto.ThkClaims) error {
+	dataBytes, err := json.Marshal(req)
+	if err != nil {
+		d.logger.Errorf("UpdateSessionType: %v %v", req, err)
+		return err
+	}
+	url := fmt.Sprintf("%s%s/session", d.endpoint, systemUrl)
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
+		SetHeader("Content-Type", jsonContentType).
+		SetBody(dataBytes).
+		Put(url)
+	if errRequest != nil {
+		return errRequest
+	}
+	if res.StatusCode() != http.StatusOK {
+		e := errors.New(string(res.Body()))
+		d.logger.Errorf("UpdateSessionType: %v %v", req, e)
+		return e
+	} else {
+		d.logger.Errorf("UpdateSessionType: %v %s", req, "success")
+		return nil
+	}
+}
+
 func (d defaultMsgApi) SysDelSessionUser(sessionId int64, req *dto.SessionDelUserReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {

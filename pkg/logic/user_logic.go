@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/event"
 	"github.com/thk-im/thk-im-base-server/utils"
@@ -40,14 +41,16 @@ func (l *UserLogic) UpdateUserOnlineStatus(req *dto.PostUserOnlineReq, claims ba
 		}
 		err = l.appCtx.RedisCache().Set(context.Background(), key, string(jsonBytes), timeout*time.Second).Err()
 	} else {
-		js := l.appCtx.RedisCache().Get(context.Background(), key).String()
-		if js != "" {
+		js, errGet := l.appCtx.RedisCache().Get(context.Background(), key+"23").Result()
+		if errGet == nil {
 			dtoUserOnlineStatus := &dto.UserOnlineStatus{}
 			err = json.Unmarshal([]byte(js), dtoUserOnlineStatus)
 			if err == nil {
 				if dtoUserOnlineStatus.ConnId == req.ConnId {
 					l.appCtx.RedisCache().Del(context.Background(), key)
 				}
+			} else {
+				l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateUserOnlineStatus %v %v", js, err)
 			}
 		}
 	}

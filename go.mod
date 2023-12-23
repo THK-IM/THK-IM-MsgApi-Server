@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/thk-im/thk-im-base-server v0.0.0-20231222095716-b1a610143ed8
-	github.com/thk-im/thk-im-user-server v0.0.0-20231222100425-d041f1731d9e
+	github.com/thk-im/thk-im-user-server v0.0.0-20231223064219-89035d0abfae
 )
 
 require (

@@ -28,9 +28,11 @@ func (l *UserLogic) UpdateUserOnlineStatus(req *dto.PostUserOnlineReq, claims ba
 	if req.Online {
 		timeout := time.Duration(l.appCtx.Config().IM.OnlineTimeout)
 		dtoUserOnlineStatus := &dto.UserOnlineStatus{
-			UId:            req.UId,
-			Platform:       req.Platform,
-			LastOnlineTime: req.Timestamp,
+			UId:       req.UId,
+			Platform:  req.Platform,
+			ConnId:    req.ConnId,
+			Timestamp: req.Timestamp,
+			NodeId:    req.NodeId,
 		}
 		jsonBytes, errJson := json.Marshal(dtoUserOnlineStatus)
 		if errJson != nil {
@@ -38,11 +40,16 @@ func (l *UserLogic) UpdateUserOnlineStatus(req *dto.PostUserOnlineReq, claims ba
 		}
 		err = l.appCtx.RedisCache().Set(context.Background(), key, string(jsonBytes), timeout*time.Second).Err()
 	} else {
-		_, err = utils.DelKeyByValue(l.appCtx.RedisCache(), key, req.ConnId)
-	}
-	if req.IsLogin {
-		// 登录写库登录记录
-		err = l.appCtx.UserOnlineRecordModel().UpdateUserOnlineRecord(req.UId, req.Timestamp, req.ConnId, req.Platform)
+		js := l.appCtx.RedisCache().Get(context.Background(), key).String()
+		if js != "" {
+			dtoUserOnlineStatus := &dto.UserOnlineStatus{}
+			err = json.Unmarshal([]byte(js), dtoUserOnlineStatus)
+			if err == nil {
+				if dtoUserOnlineStatus.ConnId == req.ConnId {
+					l.appCtx.RedisCache().Del(context.Background(), key)
+				}
+			}
+		}
 	}
 	return err
 }

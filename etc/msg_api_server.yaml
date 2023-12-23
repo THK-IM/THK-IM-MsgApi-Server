@@ -50,8 +50,6 @@ Models:
     Shards: 5
   - Name: "session_object"
     Shards: 5
-  - Name: "user_online_record"
-    Shards: 5
 ObjectStorage:
   Endpoint: "http://minio.thkim.com"
   Bucket: "thk"

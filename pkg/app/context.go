@@ -40,10 +40,6 @@ func (c *Context) SessionObjectModel() model.SessionObjectModel {
 	return c.Context.ModelMap["session_object"].(model.SessionObjectModel)
 }
 
-func (c *Context) UserOnlineRecordModel() model.UserOnlineRecordModel {
-	return c.Context.ModelMap["user_online_record"].(model.UserOnlineRecordModel)
-}
-
 func (c *Context) UserApi() userSdk.UserApi {
 	return c.Context.SdkMap["user_api"].(userSdk.UserApi)
 }

@@ -38,7 +38,7 @@ func (d defaultMsgApi) DelSessionUser(sessionId int64, req *dto.SessionDelUserRe
 		d.logger.Errorf("DelSessionUser: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Errorf("DelSessionUser: %v %s", req, "success")
+		d.logger.Infof("DelSessionUser: %v %s", req, "success")
 		return nil
 	}
 }
@@ -67,7 +67,7 @@ func (d defaultMsgApi) AddSessionUser(sessionId int64, req *dto.SessionAddUserRe
 		d.logger.Errorf("AddSessionUser: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Errorf("AddSessionUser: %v %s", req, "success")
+		d.logger.Infof("AddSessionUser: %v %s", req, "success")
 		return nil
 	}
 }
@@ -96,7 +96,7 @@ func (d defaultMsgApi) DelSession(sessionId int64, req *dto.DelSessionReq, claim
 		d.logger.Errorf("DelSession: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Errorf("DelSession: %v %s", req, "success")
+		d.logger.Infof("DelSession: %v %s", req, "success")
 		return nil
 	}
 }
@@ -125,7 +125,7 @@ func (d defaultMsgApi) UpdateSession(sessionId int64, req *dto.UpdateSessionReq,
 		d.logger.Errorf("UpdateSession: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Errorf("UpdateSession: %v %s", req, "success")
+		d.logger.Infof("UpdateSession: %v %s", req, "success")
 		return nil
 	}
 }
@@ -236,7 +236,7 @@ func (d defaultMsgApi) UpdateSessionUser(sessionId int64, req *dto.SessionUserUp
 		d.logger.Errorf("UpdateSessionUser: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Errorf("UpdateSessionUser: %v %s", req, "success")
+		d.logger.Infof("UpdateSessionUser: %v %s", req, "success")
 		return nil
 	}
 }

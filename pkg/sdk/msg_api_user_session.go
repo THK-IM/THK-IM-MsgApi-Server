@@ -36,7 +36,7 @@ func (d defaultMsgApi) UpdateUserSession(req *dto.UpdateUserSessionReq, claims b
 		d.logger.Errorf("UpdateUserSession: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Errorf("UpdateUserSession: %v %s", req, "success")
+		d.logger.Infof("UpdateUserSession: %v %s", req, "success")
 		return nil
 	}
 }

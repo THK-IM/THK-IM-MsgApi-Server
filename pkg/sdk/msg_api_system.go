@@ -85,7 +85,7 @@ func (d defaultMsgApi) UpdateSessionType(req *dto.UpdateSessionTypeReq, claims b
 		d.logger.Errorf("UpdateSessionType: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Errorf("UpdateSessionType: %v %s", req, "success")
+		d.logger.Infof("UpdateSessionType: %v %s", req, "success")
 		return nil
 	}
 }
@@ -114,7 +114,7 @@ func (d defaultMsgApi) SysDelSessionUser(sessionId int64, req *dto.SessionDelUse
 		d.logger.Errorf("SysDelSessionUser: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Errorf("SysDelSessionUser: %v %s", req, "success")
+		d.logger.Infof("SysDelSessionUser: %v %s", req, "success")
 		return nil
 	}
 }
@@ -143,7 +143,7 @@ func (d defaultMsgApi) SysAddSessionUser(sessionId int64, req *dto.SessionAddUse
 		d.logger.Errorf("SysAddSessionUser: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Errorf("SysAddSessionUser: %v %s", req, "success")
+		d.logger.Infof("SysAddSessionUser: %v %s", req, "success")
 		return nil
 	}
 }
@@ -310,7 +310,7 @@ func (d defaultMsgApi) KickOffUser(req *dto.KickUserReq, claims baseDto.ThkClaim
 		d.logger.Errorf("KickOffUser: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Errorf("KickOffUser: %v %s", req, "success")
+		d.logger.Infof("KickOffUser: %v %s", req, "success")
 		return nil
 	}
 }
@@ -383,7 +383,7 @@ func (d defaultMsgApi) PostUserOnlineStatus(req *dto.PostUserOnlineReq, claims b
 		d.logger.Errorf("PostUserOnlineStatus: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Errorf("PostUserOnlineStatus: %v %s", req, "success")
+		d.logger.Infof("PostUserOnlineStatus: %v %s", req, "success")
 		return nil
 	}
 }

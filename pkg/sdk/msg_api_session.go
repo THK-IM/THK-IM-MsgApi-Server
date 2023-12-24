@@ -2,7 +2,6 @@ package sdk
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/errorx"
@@ -34,7 +33,7 @@ func (d defaultMsgApi) DelSessionUser(sessionId int64, req *dto.SessionDelUserRe
 		return errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		e := errors.New(string(res.Body()))
+		e := errorx.NewErrorXFromResp(res)
 		d.logger.Errorf("DelSessionUser: %v %v", req, e)
 		return e
 	} else {
@@ -63,7 +62,7 @@ func (d defaultMsgApi) AddSessionUser(sessionId int64, req *dto.SessionAddUserRe
 		return errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		e := errors.New(string(res.Body()))
+		e := errorx.NewErrorXFromResp(res)
 		d.logger.Errorf("AddSessionUser: %v %v", req, e)
 		return e
 	} else {
@@ -92,7 +91,7 @@ func (d defaultMsgApi) DelSession(sessionId int64, req *dto.DelSessionReq, claim
 		return errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		e := errors.New(string(res.Body()))
+		e := errorx.NewErrorXFromResp(res)
 		d.logger.Errorf("DelSession: %v %v", req, e)
 		return e
 	} else {
@@ -121,7 +120,7 @@ func (d defaultMsgApi) UpdateSession(sessionId int64, req *dto.UpdateSessionReq,
 		return errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		e := errors.New(string(res.Body()))
+		e := errorx.NewErrorXFromResp(res)
 		d.logger.Errorf("UpdateSession: %v %v", req, e)
 		return e
 	} else {
@@ -147,14 +146,9 @@ func (d defaultMsgApi) QuerySessionUsers(sessionId int64, req *dto.QuerySessionU
 		return nil, errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		errRes := &errorx.ErrorX{}
-		e := json.Unmarshal(res.Body(), errRes)
-		if e != nil {
-			d.logger.Errorf("QuerySessionUsers: %v %v", req, e)
-			return nil, e
-		} else {
-			return nil, errRes
-		}
+		e := errorx.NewErrorXFromResp(res)
+		d.logger.Errorf("QuerySessionUsers: %v %v", req, e)
+		return nil, e
 	} else {
 		if res.Body() == nil || len(res.Body()) == 0 {
 			d.logger.Info("QuerySessionUsers: %v %s", req, "Body is nil")
@@ -187,19 +181,10 @@ func (d defaultMsgApi) QuerySessionUser(sessionId, userId int64, claims baseDto.
 		return nil, errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		errRes := &errorx.ErrorX{}
-		e := json.Unmarshal(res.Body(), errRes)
-		if e != nil {
-			d.logger.Errorf("QuerySessionUsers: %d %d %v", sessionId, userId, e)
-			return nil, e
-		} else {
-			return nil, errRes
-		}
+		e := errorx.NewErrorXFromResp(res)
+		d.logger.Errorf("QuerySessionUsers: %d %d %v", sessionId, userId, e)
+		return nil, e
 	} else {
-		if res.Body() == nil || len(res.Body()) == 0 {
-			d.logger.Info("QuerySessionUsers: %d %d %s", sessionId, userId, "Body is nil")
-			return nil, nil
-		}
 		resp := &dto.SessionUser{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {
@@ -232,7 +217,7 @@ func (d defaultMsgApi) UpdateSessionUser(sessionId int64, req *dto.SessionUserUp
 		return errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		e := errors.New(string(res.Body()))
+		e := errorx.NewErrorXFromResp(res)
 		d.logger.Errorf("UpdateSessionUser: %v %v", req, e)
 		return e
 	} else {

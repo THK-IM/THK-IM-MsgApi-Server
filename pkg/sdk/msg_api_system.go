@@ -2,7 +2,6 @@ package sdk
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/errorx"
@@ -81,7 +80,7 @@ func (d defaultMsgApi) UpdateSessionType(req *dto.UpdateSessionTypeReq, claims b
 		return errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		e := errors.New(string(res.Body()))
+		e := errorx.NewErrorXFromResp(res)
 		d.logger.Errorf("UpdateSessionType: %v %v", req, e)
 		return e
 	} else {
@@ -110,7 +109,7 @@ func (d defaultMsgApi) SysDelSessionUser(sessionId int64, req *dto.SessionDelUse
 		return errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		e := errors.New(string(res.Body()))
+		e := errorx.NewErrorXFromResp(res)
 		d.logger.Errorf("SysDelSessionUser: %v %v", req, e)
 		return e
 	} else {
@@ -139,7 +138,7 @@ func (d defaultMsgApi) SysAddSessionUser(sessionId int64, req *dto.SessionAddUse
 		return errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		e := errors.New(string(res.Body()))
+		e := errorx.NewErrorXFromResp(res)
 		d.logger.Errorf("SysAddSessionUser: %v %v", req, e)
 		return e
 	} else {
@@ -169,14 +168,9 @@ func (d defaultMsgApi) PushMessage(req *dto.PushMessageReq, claims baseDto.ThkCl
 		return nil, errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		errRes := &errorx.ErrorX{}
-		e := json.Unmarshal(res.Body(), errRes)
-		if e != nil {
-			d.logger.Errorf("PushMessage: %v %v", req, e)
-			return nil, e
-		} else {
-			return nil, errRes
-		}
+		e := errorx.NewErrorXFromResp(res)
+		d.logger.Errorf("PushMessage: %v %v", req, e)
+		return nil, e
 	} else {
 		if res.Body() == nil || len(res.Body()) == 0 {
 			d.logger.Infof("PushMessage: %v %s", req, "Body is nil")
@@ -215,19 +209,10 @@ func (d defaultMsgApi) SendSysMessage(req *dto.SendSysMessageReq, claims baseDto
 		return nil, errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		errRes := &errorx.ErrorX{}
-		e := json.Unmarshal(res.Body(), errRes)
-		if e != nil {
-			d.logger.Errorf("SendSystemMessage: %v %v", req, e)
-			return nil, e
-		} else {
-			return nil, errRes
-		}
+		e := errorx.NewErrorXFromResp(res)
+		d.logger.Errorf("SendSystemMessage: %v %v", req, e)
+		return nil, e
 	} else {
-		if res.Body() == nil || len(res.Body()) == 0 {
-			d.logger.Infof("SendSystemMessage: %v %s", req, "Body is nil")
-			return nil, nil
-		}
 		resp := &dto.SendSysMessageRes{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {
@@ -261,19 +246,10 @@ func (d defaultMsgApi) SendSessionMessage(req *dto.SendMessageReq, claims baseDt
 		return nil, errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		errRes := &errorx.ErrorX{}
-		e := json.Unmarshal(res.Body(), errRes)
-		if e != nil {
-			d.logger.Errorf("SendSessionMessage: %v %v", req, e)
-			return nil, e
-		} else {
-			return nil, errRes
-		}
+		e := errorx.NewErrorXFromResp(res)
+		d.logger.Errorf("SendSessionMessage: %v %v", req, e)
+		return nil, e
 	} else {
-		if res.Body() == nil || len(res.Body()) == 0 {
-			d.logger.Infof("SendSessionMessage: %v %s", req, "Body is nil")
-			return nil, nil
-		}
 		resp := &dto.SendMessageRes{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {
@@ -306,7 +282,7 @@ func (d defaultMsgApi) KickOffUser(req *dto.KickUserReq, claims baseDto.ThkClaim
 		return errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		e := errors.New(string(res.Body()))
+		e := errorx.NewErrorXFromResp(res)
 		d.logger.Errorf("KickOffUser: %v %v", req, e)
 		return e
 	} else {
@@ -334,19 +310,10 @@ func (d defaultMsgApi) QueryUsersOnlineStatus(req *dto.QueryUsersOnlineStatusReq
 		return nil, errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		errRes := &errorx.ErrorX{}
-		e := json.Unmarshal(res.Body(), errRes)
-		if e != nil {
-			d.logger.Errorf("QueryUsersOnlineStatus: %v %v", req, e)
-			return nil, e
-		} else {
-			return nil, errRes
-		}
+		e := errorx.NewErrorXFromResp(res)
+		d.logger.Errorf("QueryUsersOnlineStatus: %v %v", req, e)
+		return nil, e
 	} else {
-		if res.Body() == nil || len(res.Body()) == 0 {
-			d.logger.Info("QueryUsersOnlineStatus: %v %s", req, "Body is nil")
-			return nil, nil
-		}
 		resp := &dto.QueryUsersOnlineStatusRes{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {
@@ -379,7 +346,7 @@ func (d defaultMsgApi) PostUserOnlineStatus(req *dto.PostUserOnlineReq, claims b
 		return errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		e := errors.New(string(res.Body()))
+		e := errorx.NewErrorXFromResp(res)
 		d.logger.Errorf("PostUserOnlineStatus: %v %v", req, e)
 		return e
 	} else {

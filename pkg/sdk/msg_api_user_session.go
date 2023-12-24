@@ -2,7 +2,6 @@ package sdk
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/errorx"
@@ -32,7 +31,7 @@ func (d defaultMsgApi) UpdateUserSession(req *dto.UpdateUserSessionReq, claims b
 		return errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		e := errors.New(string(res.Body()))
+		e := errorx.NewErrorXFromResp(res)
 		d.logger.Errorf("UpdateUserSession: %v %v", req, e)
 		return e
 	} else {
@@ -55,19 +54,10 @@ func (d defaultMsgApi) QueryUserSession(req *dto.QueryUserSessionReq, claims bas
 		return nil, errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
-		errRes := &errorx.ErrorX{}
-		e := json.Unmarshal(res.Body(), errRes)
-		if e != nil {
-			d.logger.Errorf("QueryUserSession: %v %v", req, e)
-			return nil, e
-		} else {
-			return nil, errRes
-		}
+		e := errorx.NewErrorXFromResp(res)
+		d.logger.Errorf("QueryUserSession: %v %v", req, e)
+		return nil, e
 	} else {
-		if res.Body() == nil || len(res.Body()) == 0 {
-			d.logger.Info("QueryUserSession: %v %s", req, "Body is nil")
-			return nil, nil
-		}
 		resp := &dto.UserSession{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {

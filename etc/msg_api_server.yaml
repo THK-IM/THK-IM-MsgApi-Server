@@ -51,10 +51,10 @@ Models:
   - Name: "session_object"
     Shards: 5
 ObjectStorage:
-  Endpoint: "http://minio.thkim.com"
-  Bucket: "thk"
-  AK: "7pwGcuomjng4cRKWYPNz"
-  SK: "IzN7VrEKOGIPIEkhvQU6cJepu6bdrNC95BRYslwJ"
+  Endpoint: ${OS_Endpoint}
+  Bucket: ${OS_BUCKET}
+  AK: ${OS_AK}
+  SK: ${OS_SK}
   Region: us-east-1
 Metric:
   Endpoint: "/metrics"

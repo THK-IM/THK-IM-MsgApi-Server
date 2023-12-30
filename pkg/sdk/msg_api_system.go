@@ -194,7 +194,7 @@ func (d defaultMsgApi) SendSysMessage(req *dto.SendSysMessageReq, claims baseDto
 		d.logger.Errorf("SendSystemMessage: %v %v", req, err)
 		return nil, err
 	}
-	url := fmt.Sprintf("%s%s%s", d.endpoint, systemUrl, "/session_message")
+	url := fmt.Sprintf("%s%s%s", d.endpoint, systemUrl, "/system_message")
 	request := d.client.R()
 	for k, v := range claims {
 		vs := v.(string)

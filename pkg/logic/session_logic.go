@@ -268,10 +268,10 @@ func (l *SessionLogic) UpdateUserSession(req dto.UpdateUserSessionReq, claims ba
 	return
 }
 
-func (l *SessionLogic) GetUserSessions(req dto.GetUserSessionsReq, claims baseDto.ThkClaims) (*dto.GetUserSessionsRes, error) {
-	userSessions, err := l.appCtx.UserSessionModel().GetUserSessions(req.UId, req.MTime, req.Offset, req.Count)
+func (l *SessionLogic) QueryLatestUserSessions(req dto.QueryLatestUserSessionReq, claims baseDto.ThkClaims) (*dto.QueryLatestUserSessionsRes, error) {
+	userSessions, err := l.appCtx.UserSessionModel().GetUserSessions(req.UId, req.MTime, req.Offset, req.Count, req.Types)
 	if err != nil {
-		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("GetUserSessions, %v %v", req, err)
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("QueryLatestUserSessions, %v %v", req, err)
 		return nil, err
 	}
 	dtoUserSessions := make([]*dto.UserSession, 0)
@@ -279,7 +279,7 @@ func (l *SessionLogic) GetUserSessions(req dto.GetUserSessionsReq, claims baseDt
 		dtoUserSession := l.convUserSession(userSession)
 		dtoUserSessions = append(dtoUserSessions, dtoUserSession)
 	}
-	return &dto.GetUserSessionsRes{Data: dtoUserSessions}, nil
+	return &dto.QueryLatestUserSessionsRes{Data: dtoUserSessions}, nil
 }
 
 func (l *SessionLogic) GetUserSession(uId, sId int64, claims baseDto.ThkClaims) (*dto.UserSession, error) {

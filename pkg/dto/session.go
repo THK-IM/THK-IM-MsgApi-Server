@@ -52,11 +52,12 @@ type UpdateUserSessionReq struct {
 	ParentId *int64 `json:"parent_id"`
 }
 
-type GetUserSessionsReq struct {
+type QueryLatestUserSessionReq struct {
 	UId    int64 `json:"u_id" form:"u_id"`
 	Offset int   `json:"offset" form:"offset"`
 	Count  int   `json:"count" form:"count"`
 	MTime  int64 `json:"m_time" form:"m_time"`
+	Types  []int `json:"types" form:"types"`
 }
 
 type QueryUserSessionReq struct {
@@ -91,7 +92,7 @@ type SessionUser struct {
 	MTime  int64 `json:"m_time"`
 }
 
-type GetUserSessionsRes struct {
+type QueryLatestUserSessionsRes struct {
 	Data []*UserSession `json:"data"`
 }
 

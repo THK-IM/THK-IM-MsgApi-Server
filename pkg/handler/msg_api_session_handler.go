@@ -222,11 +222,11 @@ func updateUserSession(appCtx *app.Context) gin.HandlerFunc {
 	}
 }
 
-func getUserSessions(appCtx *app.Context) gin.HandlerFunc {
+func getLatestUserSessions(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionLogic(appCtx)
 	return func(ctx *gin.Context) {
 		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
-		var req dto.GetUserSessionsReq
+		var req dto.QueryLatestUserSessionReq
 		if err := ctx.ShouldBindQuery(&req); err != nil {
 			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getUserSessions %s", err.Error())
 			baseDto.ResponseBadRequest(ctx)
@@ -239,7 +239,7 @@ func getUserSessions(appCtx *app.Context) gin.HandlerFunc {
 			return
 		}
 
-		if resp, err := l.GetUserSessions(req, claims); err != nil {
+		if resp, err := l.QueryLatestUserSessions(req, claims); err != nil {
 			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getUserSessions %v %v", req, err)
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {

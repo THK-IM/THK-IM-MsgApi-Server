@@ -44,7 +44,7 @@ type (
 		UpdateUserSessionType(userIds []int64, sessionId int64, sessionType int) error
 		UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute, extData *string, top *int64, status, role *int, parentId *int64) error
 		FindEntityIdsInUserSession(userId, sessionId int64) []int64
-		GetUserSessions(userId, mTime int64, offset, count int) ([]*UserSession, error)
+		GetUserSessions(userId, mTime int64, offset, count int, types []int) ([]*UserSession, error)
 		GetUserSession(userId, sessionId int64) (*UserSession, error)
 		GenUserSessionTableName(userId int64) string
 	}
@@ -165,10 +165,18 @@ func (d defaultUserSessionModel) FindEntityIdsInUserSession(userId, sessionId in
 	return entityIds
 }
 
-func (d defaultUserSessionModel) GetUserSessions(userId, mTime int64, offset, count int) ([]*UserSession, error) {
-	userSessions := make([]*UserSession, 0)
-	sqlStr := "select * from " + d.GenUserSessionTableName(userId) + " where user_id = ? and update_time <= ? limit ? offset ?"
-	err := d.db.Raw(sqlStr, userId, mTime, count, offset).Scan(&userSessions).Error
+func (d defaultUserSessionModel) GetUserSessions(userId, mTime int64, offset, count int, types []int) ([]*UserSession, error) {
+	var (
+		err          error
+		userSessions = make([]*UserSession, 0)
+	)
+	if len(types) > 0 {
+		sqlStr := "select * from " + d.GenUserSessionTableName(userId) + " where user_id = ? and type in ? and update_time <= ? limit ? offset ?"
+		err = d.db.Raw(sqlStr, userId, types, mTime, count, offset).Scan(&userSessions).Error
+	} else {
+		sqlStr := "select * from " + d.GenUserSessionTableName(userId) + " where user_id = ? and update_time <= ? limit ? offset ?"
+		err = d.db.Raw(sqlStr, userId, mTime, count, offset).Scan(&userSessions).Error
+	}
 	if err != nil {
 		return nil, err
 	}

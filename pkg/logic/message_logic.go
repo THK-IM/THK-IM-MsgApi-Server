@@ -126,12 +126,15 @@ func (l *MessageLogic) SendMessage(req dto.SendMessageReq, claims baseDto.ThkCla
 			return nil, errorx.ErrSessionMuted
 		}
 	}
-	receivers := l.appCtx.SessionUserModel().FindUIdsInSessionWithoutStatus(req.SId, model.RejectBitInUserSessionStatus, req.Receivers)
-	if receivers == nil || len(receivers) == 0 {
-		return nil, errorx.ErrUserReject
+	if session.Type == model.SingleSessionType {
+		rejectReceivers := l.appCtx.SessionUserModel().FindUIdsInSessionContainStatus(req.SId, model.RejectBitInUserSessionStatus, req.Receivers)
+		if len(rejectReceivers) > 0 {
+			return nil, errorx.ErrUserReject
+		}
 	}
 
-	if len(receivers) == 1 && receivers[0] == req.FUid {
+	receivers := l.appCtx.SessionUserModel().FindUIdsInSessionWithoutStatus(req.SId, model.RejectBitInUserSessionStatus, req.Receivers)
+	if receivers == nil || len(receivers) == 0 {
 		return nil, errorx.ErrUserReject
 	}
 

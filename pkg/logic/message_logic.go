@@ -1,13 +1,13 @@
 package logic
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	baseErrorx "github.com/thk-im/thk-im-base-server/errorx"
 	"github.com/thk-im/thk-im-base-server/event"
-	"github.com/thk-im/thk-im-base-server/utils"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/errorx"
@@ -268,7 +268,7 @@ func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, del
 		uidOnlineKeys = append(uidOnlineKeys, uidOnlineKey)
 	}
 	onlineUIds := make([]int64, 0)
-	onlineUsers, err := utils.BatchGet(l.appCtx.RedisCache(), uidOnlineKeys)
+	onlineUsers, err := l.appCtx.RedisCache().MGet(context.Background(), uidOnlineKeys...).Result()
 	if err != nil {
 		// 如果查询报错 默认全部用户为离线
 		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("pubPushMessageEvents error: %v", err)

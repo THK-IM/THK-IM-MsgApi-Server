@@ -7,7 +7,6 @@ import (
 	"github.com/sirupsen/logrus"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/event"
-	"github.com/thk-im/thk-im-base-server/utils"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"time"
@@ -63,7 +62,7 @@ func (l *UserLogic) GetUsersOnlineStatus(uIds []int64, claims baseDto.ThkClaims)
 		uidOnlineKey := fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, uid)
 		uidOnlineKeys = append(uidOnlineKeys, uidOnlineKey)
 	}
-	onlineUsers, err := utils.BatchGet(l.appCtx.RedisCache(), uidOnlineKeys)
+	onlineUsers, err := l.appCtx.RedisCache().MGet(context.Background(), uidOnlineKeys...).Result()
 	if err != nil {
 		return nil, err
 	}

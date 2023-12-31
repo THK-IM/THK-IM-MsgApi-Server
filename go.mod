@@ -3,8 +3,8 @@ module github.com/thk-im/thk-im-msgapi-server
 go 1.19
 
 require (
-	github.com/thk-im/thk-im-base-server v0.0.0-20231228134043-304d36641379
-	github.com/thk-im/thk-im-user-server v0.0.0-20231228134223-109387e54f8b
+	github.com/thk-im/thk-im-base-server v0.0.0-20231231091140-a2d81cd7fcbc
+	github.com/thk-im/thk-im-user-server v0.0.0-20231231092351-eb2ba20edfca
 )
 
 require (

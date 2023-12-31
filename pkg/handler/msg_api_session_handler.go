@@ -276,7 +276,7 @@ func queryUserSession(appCtx *app.Context) gin.HandlerFunc {
 	}
 }
 
-func getUserSession(appCtx *app.Context) gin.HandlerFunc {
+func queryUserSessionBySId(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionLogic(appCtx)
 	return func(ctx *gin.Context) {
 		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
@@ -287,29 +287,29 @@ func getUserSession(appCtx *app.Context) gin.HandlerFunc {
 
 		iUid, errUId := strconv.ParseInt(uid, 10, 64)
 		if errUId != nil {
-			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getUserSession %s", errUId.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("queryUserSessionBySId %s", errUId.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 
 		iSid, errSId := strconv.ParseInt(sid, 10, 64)
 		if errSId != nil {
-			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getUserSession %s", errSId.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("queryUserSessionBySId %s", errSId.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 && requestUid != iUid {
-			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getUserSession %d %d", requestUid, iUid)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("queryUserSessionBySId %d %d", requestUid, iUid)
 			baseDto.ResponseForbidden(ctx)
 			return
 		}
 
 		if res, err := l.GetUserSession(iUid, iSid, claims); err != nil {
-			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getUserSession %d %d %v", iUid, iSid, err)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("queryUserSessionBySId %d %d %v", iUid, iSid, err)
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			appCtx.Logger().WithFields(logrus.Fields(claims)).Info("getUserSession %d %d %v", iUid, iSid, res)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Info("queryUserSessionBySId %d %d %v", iUid, iSid, res)
 			baseDto.ResponseSuccess(ctx, res)
 		}
 	}

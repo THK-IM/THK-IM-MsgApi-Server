@@ -2,7 +2,7 @@ package dto
 
 type AckUserMessagesReq struct {
 	UId    int64   `json:"u_id"`
-	SId    int64   `json:"s_id" binding:"required"`
+	SId    int64   `json:"s_id"`
 	MsgIds []int64 `json:"msg_ids" binding:"required"`
 }
 

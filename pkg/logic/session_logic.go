@@ -205,7 +205,7 @@ func (l *SessionLogic) UpdateSession(req dto.UpdateSessionReq, claims baseDto.Th
 		sql := "mute | 1"
 		mute = &sql
 	}
-	return l.appCtx.UserSessionModel().UpdateUserSession(uIds, req.Id, req.Name, req.Remark, mute, req.ExtData, nil, nil, nil, nil)
+	return l.appCtx.UserSessionModel().UpdateUserSession(uIds, req.Id, req.Name, req.Remark, mute, req.ExtData, nil, nil, nil, nil, nil)
 }
 
 func (l *SessionLogic) UpdateSessionType(req dto.UpdateSessionTypeReq, claims baseDto.ThkClaims) error {
@@ -259,9 +259,11 @@ func (l *SessionLogic) UpdateUserSession(req dto.UpdateUserSessionReq, claims ba
 			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("release locker success: %t, error: %s", success, lockErr.Error())
 		}
 	}()
-	err = l.appCtx.UserSessionModel().UpdateUserSession([]int64{req.UId}, req.SId, nil, nil, nil, nil, req.Top, req.Status, nil, req.ParentId)
+	err = l.appCtx.UserSessionModel().UpdateUserSession([]int64{req.UId}, req.SId, nil,
+		nil, nil, nil, req.NoteName, req.Top, req.Status, nil, req.ParentId,
+	)
 	if err == nil {
-		err = l.appCtx.SessionUserModel().UpdateUser(req.SId, []int64{req.UId}, nil, req.Status, nil)
+		err = l.appCtx.SessionUserModel().UpdateUser(req.SId, []int64{req.UId}, nil, req.Status, req.NoteName, nil)
 	} else {
 		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("UpdateUserSession, %v %v", req, err)
 	}
@@ -269,7 +271,7 @@ func (l *SessionLogic) UpdateUserSession(req dto.UpdateUserSessionReq, claims ba
 }
 
 func (l *SessionLogic) QueryLatestUserSessions(req dto.QueryLatestUserSessionReq, claims baseDto.ThkClaims) (*dto.QueryLatestUserSessionsRes, error) {
-	userSessions, err := l.appCtx.UserSessionModel().GetUserSessions(req.UId, req.MTime, req.Offset, req.Count, req.Types)
+	userSessions, err := l.appCtx.UserSessionModel().QueryLatestUserSessions(req.UId, req.MTime, req.Offset, req.Count, req.Types)
 	if err != nil {
 		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("QueryLatestUserSessions, %v %v", req, err)
 		return nil, err
@@ -314,6 +316,8 @@ func (l *SessionLogic) convUserSession(userSession *model.UserSession) *dto.User
 		Status:   userSession.Status,
 		EntityId: userSession.EntityId,
 		ExtData:  userSession.ExtData,
+		NoteName: userSession.NoteName,
+		Deleted:  userSession.Deleted,
 		CTime:    userSession.CreateTime,
 		MTime:    userSession.UpdateTime,
 	}

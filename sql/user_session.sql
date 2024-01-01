@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS `user_session_%s`
     `top`         BIGINT  NOT NULL DEFAULT 0 COMMENT '置顶时间戳',
     `mute`        INT     NOT NULL DEFAULT 0 COMMENT '2^0(全员被禁言) 2^1(自己被禁言)',
     `status`      INT     NOT NULL DEFAULT 0 COMMENT '2^1(不接收消息) 2^2(静音)',
+    `note_name`   VARCHAR(64) COMMENT '备注名',
     `ext_data`    TEXT COMMENT '扩展字段',
     `update_time` BIGINT  NOT NULL DEFAULT 0 COMMENT '更新时间',
     `create_time` BIGINT  NOT NULL DEFAULT 0 COMMENT '创建时间',

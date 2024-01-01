@@ -129,8 +129,8 @@ func (d defaultMsgApi) UpdateSession(sessionId int64, req *dto.UpdateSessionReq,
 	}
 }
 
-func (d defaultMsgApi) QuerySessionUsers(sessionId int64, req *dto.QuerySessionUsersReq, claims baseDto.ThkClaims) (*dto.QuerySessionUsersRes, error) {
-	url := fmt.Sprintf("%s%s/%d/user?count=%d&m_time=%d", d.endpoint, sessionUrl, sessionId, req.Count, req.MTime)
+func (d defaultMsgApi) QueryLatestSessionUsers(sessionId int64, req *dto.QuerySessionUsersReq, claims baseDto.ThkClaims) (*dto.QuerySessionUsersRes, error) {
+	url := fmt.Sprintf("%s%s/%d/user/latest?count=%d&m_time=%d", d.endpoint, sessionUrl, sessionId, req.Count, req.MTime)
 	if req.Role != nil {
 		url += fmt.Sprintf("&role=%d", *req.Role)
 	}
@@ -147,20 +147,20 @@ func (d defaultMsgApi) QuerySessionUsers(sessionId int64, req *dto.QuerySessionU
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("QuerySessionUsers: %v %v", req, e)
+		d.logger.Errorf("QueryLatestSessionUsers: %v %v", req, e)
 		return nil, e
 	} else {
 		if res.Body() == nil || len(res.Body()) == 0 {
-			d.logger.Info("QuerySessionUsers: %v %s", req, "Body is nil")
+			d.logger.Info("QueryLatestSessionUsers: %v %s", req, "Body is nil")
 			return nil, nil
 		}
 		resp := &dto.QuerySessionUsersRes{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {
-			d.logger.Errorf("QuerySessionUsers: %v %v", req, e)
+			d.logger.Errorf("QueryLatestSessionUsers: %v %v", req, e)
 			return nil, e
 		} else {
-			d.logger.Infof("QuerySessionUsers: %v %v", req, resp)
+			d.logger.Infof("QueryLatestSessionUsers: %v %v", req, resp)
 			return resp, nil
 		}
 	}
@@ -182,16 +182,16 @@ func (d defaultMsgApi) QuerySessionUser(sessionId, userId int64, claims baseDto.
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("QuerySessionUsers: %d %d %v", sessionId, userId, e)
+		d.logger.Errorf("QueryLatestSessionUsers: %d %d %v", sessionId, userId, e)
 		return nil, e
 	} else {
 		resp := &dto.SessionUser{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {
-			d.logger.Errorf("QuerySessionUsers: %d %d %v", sessionId, userId, e)
+			d.logger.Errorf("QueryLatestSessionUsers: %d %d %v", sessionId, userId, e)
 			return nil, e
 		} else {
-			d.logger.Infof("QuerySessionUsers: %d %d %v", sessionId, userId, resp)
+			d.logger.Infof("QueryLatestSessionUsers: %d %d %v", sessionId, userId, resp)
 			return resp, nil
 		}
 	}

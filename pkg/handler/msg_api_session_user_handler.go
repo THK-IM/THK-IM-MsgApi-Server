@@ -13,29 +13,29 @@ import (
 	"strconv"
 )
 
-func getSessionUsers(appCtx *app.Context) gin.HandlerFunc {
+func getLatestSessionUsers(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionLogic(appCtx)
 	return func(ctx *gin.Context) {
 		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
 		var req dto.QuerySessionUsersReq
 		if err := ctx.ShouldBindQuery(&req); err != nil {
-			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getSessionUsers %s", err.Error())
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getLatestSessionUsers %s", err.Error())
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		if req.Count <= 0 {
-			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getSessionUsers %v", req)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getLatestSessionUsers %v", req)
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		if req.Role != nil && (*req.Role > model.SessionOwner || *req.Role < model.SessionMember) {
-			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getSessionUsers %v", req)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getLatestSessionUsers %v", req)
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
 		sessionId, errSessionId := strconv.ParseInt(ctx.Param("id"), 10, 64)
 		if errSessionId != nil {
-			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getSessionUsers %v", errSessionId)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getLatestSessionUsers %v", errSessionId)
 			baseDto.ResponseBadRequest(ctx)
 			return
 		}
@@ -44,16 +44,16 @@ func getSessionUsers(appCtx *app.Context) gin.HandlerFunc {
 		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 { // 检查角色权限
 			if hasPermission := checkReadPermission(appCtx, requestUid, sessionId, claims); !hasPermission {
-				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getSessionUsers %d %d ", requestUid, sessionId)
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getLatestSessionUsers %d %d ", requestUid, sessionId)
 				baseDto.ResponseForbidden(ctx)
 				return
 			}
 		}
-		if resp, err := l.QuerySessionUsers(req, claims); err != nil {
-			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getSessionUsers %v %v", req, err)
+		if resp, err := l.QueryLatestSessionUsers(req, claims); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getLatestSessionUsers %v %v", req, err)
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("getSessionUsers %v %v", req, resp)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("getLatestSessionUsers %v %v", req, resp)
 			baseDto.ResponseSuccess(ctx, resp)
 		}
 	}

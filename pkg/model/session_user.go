@@ -21,15 +21,16 @@ var ErrMemberCnt = errors.New("member count error")
 
 type (
 	SessionUser struct {
-		SessionId  int64 `gorm:"session_id" json:"session_id"`
-		UserId     int64 `gorm:"user_id" json:"user_id"`
-		Type       int   `gorm:"type" json:"type"`
-		Role       int   `gorm:"role" json:"role"`
-		Mute       int   `gorm:"mute" json:"mute"`
-		Status     int   `gorm:"status" json:"status"`
-		CreateTime int64 `gorm:"create_time" json:"create_time"`
-		UpdateTime int64 `gorm:"update_time" json:"update_time"`
-		Deleted    int8  `gorm:"deleted" json:"deleted"`
+		SessionId  int64  `gorm:"session_id" json:"session_id"`
+		UserId     int64  `gorm:"user_id" json:"user_id"`
+		Type       int    `gorm:"type" json:"type"`
+		Role       int    `gorm:"role" json:"role"`
+		Mute       int    `gorm:"mute" json:"mute"`
+		Status     int    `gorm:"status" json:"status"`
+		NoteName   string `gorm:"note_name" json:"note_name"`
+		CreateTime int64  `gorm:"create_time" json:"create_time"`
+		UpdateTime int64  `gorm:"update_time" json:"update_time"`
+		Deleted    int8   `gorm:"deleted" json:"deleted"`
 	}
 
 	SessionUserModel interface {
@@ -43,7 +44,7 @@ type (
 		AddUser(session *Session, entityIds []int64, userIds []int64, role []int, maxCount int) ([]*UserSession, error)
 		DelUser(session *Session, userIds []int64) (err error)
 		UpdateType(sessionId int64, sessionType int) (err error)
-		UpdateUser(sessionId int64, userIds []int64, role, status *int, mute *string) (err error)
+		UpdateUser(sessionId int64, userIds []int64, role, status *int, noteName, mute *string) (err error)
 		DelSession(sessionId int64) error
 	}
 
@@ -60,10 +61,10 @@ func (d defaultSessionUserModel) FindSessionUsersByMTime(sessionId, mTime int64,
 	tableName := d.genSessionUserTableName(sessionId)
 	var err error
 	if role == nil {
-		sqlStr := fmt.Sprintf("select * from %s where session_id = ? and deleted = 0 and update_time <= ? order by update_time desc limit 0, ?", tableName)
+		sqlStr := fmt.Sprintf("select * from %s where session_id = ? and update_time >= ? order by update_time asc limit 0, ?", tableName)
 		err = d.db.Raw(sqlStr, sessionId, mTime, count).Scan(&sessionUser).Error
 	} else {
-		sqlStr := fmt.Sprintf("select * from %s where session_id = ? and deleted = 0 and role >= ? and update_time <= ? order by update_time desc limit 0, ?", tableName)
+		sqlStr := fmt.Sprintf("select * from %s where session_id = ? and role >= ? and update_time >= ? order by update_time asc limit 0, ?", tableName)
 		err = d.db.Raw(sqlStr, sessionId, *role, mTime, count).Scan(&sessionUser).Error
 	}
 	return sessionUser, err
@@ -252,7 +253,7 @@ func (d defaultSessionUserModel) UpdateType(sessionId int64, sessionType int) (e
 	return d.db.Exec(sql, sessionType, t, sessionId).Error
 }
 
-func (d defaultSessionUserModel) UpdateUser(sessionId int64, userIds []int64, role, status *int, mute *string) (err error) {
+func (d defaultSessionUserModel) UpdateUser(sessionId int64, userIds []int64, role, status *int, noteName, mute *string) (err error) {
 	if role == nil && status == nil && mute == nil {
 		return nil
 	}
@@ -264,6 +265,9 @@ func (d defaultSessionUserModel) UpdateUser(sessionId int64, userIds []int64, ro
 	}
 	if status != nil {
 		sqlBuffer.WriteString(fmt.Sprintf(" status = %d, ", *status))
+	}
+	if noteName != nil {
+		sqlBuffer.WriteString(fmt.Sprintf(" note_name = %s, ", *noteName))
 	}
 	if mute != nil {
 		sqlBuffer.WriteString(fmt.Sprintf(" mute = %s, ", *mute))

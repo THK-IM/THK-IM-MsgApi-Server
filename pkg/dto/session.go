@@ -45,11 +45,12 @@ type DelSessionReq struct {
 }
 
 type UpdateUserSessionReq struct {
-	UId      int64  `json:"u_id"`
-	SId      int64  `json:"s_id"`
-	Top      *int64 `json:"top"`
-	Status   *int   `json:"status"`
-	ParentId *int64 `json:"parent_id"`
+	UId      int64   `json:"u_id"`
+	SId      int64   `json:"s_id"`
+	NoteName *string `json:"note_name"`
+	Top      *int64  `json:"top"`
+	Status   *int    `json:"status"`
+	ParentId *int64  `json:"parent_id"`
 }
 
 type QueryLatestUserSessionReq struct {
@@ -75,6 +76,8 @@ type UserSession struct {
 	Role     int     `json:"role"`
 	Mute     int     `json:"mute"`
 	Top      int64   `json:"top"`
+	NoteName string  `json:"note_name"`
+	Deleted  int8    `json:"deleted"`
 	EntityId int64   `json:"entity_id"`
 	ExtData  *string `json:"ext_data,omitempty"`
 	CTime    int64   `json:"c_time"`
@@ -82,14 +85,16 @@ type UserSession struct {
 }
 
 type SessionUser struct {
-	SId    int64 `json:"s_id"`
-	UId    int64 `json:"u_id"`
-	Type   int   `json:"type"`
-	Mute   int   `json:"mute"`
-	Role   int   `json:"role"`
-	Status int   `json:"status"`
-	CTime  int64 `json:"c_time"`
-	MTime  int64 `json:"m_time"`
+	SId      int64  `json:"s_id"`
+	UId      int64  `json:"u_id"`
+	Type     int    `json:"type"`
+	Mute     int    `json:"mute"`
+	Role     int    `json:"role"`
+	Status   int    `json:"status"`
+	NoteName string `json:"note_name"`
+	Deleted  int8   `json:"deleted"`
+	CTime    int64  `json:"c_time"`
+	MTime    int64  `json:"m_time"`
 }
 
 type QueryLatestUserSessionsRes struct {

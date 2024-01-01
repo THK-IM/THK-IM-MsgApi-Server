@@ -33,7 +33,7 @@ type (
 		AddSessionUser(sessionId int64, req *dto.SessionAddUserReq, claims baseDto.ThkClaims) error
 		DelSession(sessionId int64, req *dto.DelSessionReq, claims baseDto.ThkClaims) error
 		UpdateSession(sessionId int64, req *dto.UpdateSessionReq, claims baseDto.ThkClaims) error
-		QuerySessionUsers(sessionId int64, req *dto.QuerySessionUsersReq, claims baseDto.ThkClaims) (*dto.QuerySessionUsersRes, error)
+		QueryLatestSessionUsers(sessionId int64, req *dto.QuerySessionUsersReq, claims baseDto.ThkClaims) (*dto.QuerySessionUsersRes, error)
 		QuerySessionUser(sessionId, userId int64, claims baseDto.ThkClaims) (*dto.SessionUser, error)
 		UpdateSessionUser(sessionId int64, req *dto.SessionUserUpdateReq, claims baseDto.ThkClaims) error
 	}

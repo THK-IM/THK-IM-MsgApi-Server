@@ -34,6 +34,7 @@ type (
 		Role       int     `gorm:"role" json:"role"`
 		Mute       int     `gorm:"mute" json:"mute"`
 		Status     int     `gorm:"status" json:"status"`
+		NoteName   string  `gorm:"note_name" json:"note_name"`
 		CreateTime int64   `gorm:"create_time" json:"create_time"`
 		UpdateTime int64   `gorm:"update_time" json:"update_time"`
 		Deleted    int8    `gorm:"deleted" json:"deleted"`
@@ -42,9 +43,9 @@ type (
 	UserSessionModel interface {
 		FindUserSessionByEntityId(userId, entityId int64, sessionType int, containDeleted bool) (*UserSession, error)
 		UpdateUserSessionType(userIds []int64, sessionId int64, sessionType int) error
-		UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute, extData *string, top *int64, status, role *int, parentId *int64) error
+		UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute, extData, noteName *string, top *int64, status, role *int, parentId *int64) error
 		FindEntityIdsInUserSession(userId, sessionId int64) []int64
-		GetUserSessions(userId, mTime int64, offset, count int, types []int) ([]*UserSession, error)
+		QueryLatestUserSessions(userId, mTime int64, offset, count int, types []int) ([]*UserSession, error)
 		GetUserSession(userId, sessionId int64) (*UserSession, error)
 		GenUserSessionTableName(userId int64) string
 	}
@@ -98,7 +99,7 @@ func (d defaultUserSessionModel) UpdateUserSessionType(userIds []int64, sessionI
 	return
 }
 
-func (d defaultUserSessionModel) UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute, extData *string, top *int64, status, role *int, parentId *int64) (err error) {
+func (d defaultUserSessionModel) UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute, extData, noteName *string, top *int64, status, role *int, parentId *int64) (err error) {
 	if sessionName == nil && sessionRemark == nil && top == nil && status == nil && mute == nil && role == nil {
 		return
 	}
@@ -142,6 +143,9 @@ func (d defaultUserSessionModel) UpdateUserSession(userIds []int64, sessionId in
 		if extData != nil {
 			sqlBuffer.WriteString(fmt.Sprintf("ext_data = %s, ", *extData))
 		}
+		if noteName != nil {
+			sqlBuffer.WriteString(fmt.Sprintf("note_name = %s, ", *noteName))
+		}
 		if role != nil {
 			sqlBuffer.WriteString(fmt.Sprintf("role = %d, ", *role))
 		}
@@ -165,7 +169,7 @@ func (d defaultUserSessionModel) FindEntityIdsInUserSession(userId, sessionId in
 	return entityIds
 }
 
-func (d defaultUserSessionModel) GetUserSessions(userId, mTime int64, offset, count int, types []int) ([]*UserSession, error) {
+func (d defaultUserSessionModel) QueryLatestUserSessions(userId, mTime int64, offset, count int, types []int) ([]*UserSession, error) {
 	var (
 		err          error
 		userSessions = make([]*UserSession, 0)

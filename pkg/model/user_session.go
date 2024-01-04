@@ -175,10 +175,10 @@ func (d defaultUserSessionModel) QueryLatestUserSessions(userId, mTime int64, of
 		userSessions = make([]*UserSession, 0)
 	)
 	if len(types) > 0 {
-		sqlStr := "select * from " + d.GenUserSessionTableName(userId) + " where user_id = ? and type in ? and update_time <= ? limit ? offset ?"
+		sqlStr := "select * from " + d.GenUserSessionTableName(userId) + " where user_id = ? and type in ? and update_time > ? order by update_time asc limit ? offset ?"
 		err = d.db.Raw(sqlStr, userId, types, mTime, count, offset).Scan(&userSessions).Error
 	} else {
-		sqlStr := "select * from " + d.GenUserSessionTableName(userId) + " where user_id = ? and update_time <= ? limit ? offset ?"
+		sqlStr := "select * from " + d.GenUserSessionTableName(userId) + " where user_id = ? and update_time > ? order by update_time asc limit ? offset ?"
 		err = d.db.Raw(sqlStr, userId, mTime, count, offset).Scan(&userSessions).Error
 	}
 	if err != nil {

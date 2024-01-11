@@ -16,7 +16,7 @@ WORKDIR /opt/${PROJECT_NAME}
 COPY --from=builder /opt/${PROJECT_NAME}/${PROJECT_NAME} /opt/${PROJECT_NAME}/${PROJECT_NAME}
 COPY --from=builder /opt/${PROJECT_NAME}/etc/ /opt/${PROJECT_NAME}/etc/
 COPY --from=builder /opt/${PROJECT_NAME}/sql/ /opt/${PROJECT_NAME}/sql/
-EXPOSE 18000
+EXPOSE 20000
 CMD "./$PROJECT_NAME --config-file ./etc/${PROJECT_NAME}.yaml"
 
 

@@ -4,7 +4,7 @@ Port: 20000
 Mode: debug
 # exposed外网暴露模式，校验用户token
 # backend后端模式，校验ip
-DeployMode: "backend"
+DeployMode: "exposed"
 IpWhiteList: 192.168.31.1/24, 192.168.1.1/24
 IM:
   OnlineTimeout: 20

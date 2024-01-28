@@ -62,7 +62,7 @@ Metric:
   PushInterval: 10
 Sdks:
   - Name: user_api
-    Endpoint: "http://host.docker.internal:10000"
+    Endpoint: "http://user-api.thkim.com:10000"
 MsgQueue:
   Publishers:
     - Topic: "push_msg"

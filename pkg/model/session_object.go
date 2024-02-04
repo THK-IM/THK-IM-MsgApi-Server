@@ -11,6 +11,7 @@ import (
 
 type (
 	SessionObject struct {
+		Id         int64 `gorm:"id" json:"id"`
 		ObjectId   int64 `gorm:"object_id" json:"object_id"`
 		SId        int64 `gorm:"s_id" json:"s_id"`
 		FromUserId int64 `gorm:"from_user_id" json:"from_user_id"`

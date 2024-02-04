@@ -21,6 +21,7 @@ const (
 
 type (
 	SessionMessage struct {
+		Id         int64   `gorm:"id" json:"id"`
 		MsgId      int64   `gorm:"msg_id" json:"msg_id"`
 		ClientId   int64   `gorm:"client_id" json:"client_id"`
 		SessionId  int64   `gorm:"session_id" json:"session_id"`

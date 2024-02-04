@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS `session_message_%s`
 (
+    `id`           BIGINT  PRIMARY KEY NOT NULL auto_increment,
     `msg_id`       BIGINT  NOT NULL,
     `client_id`    BIGINT  NOT NULL,
     `session_id`   BIGINT  NOT NULL,

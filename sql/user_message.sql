@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS `user_message_%s`
 (
+    `id`          BIGINT  PRIMARY KEY NOT NULL auto_increment,
     `msg_id`       BIGINT  NOT NULL,
     `client_id`    BIGINT  NOT NULL,
     `user_id`      BIGINT  NOT NULL,
@@ -14,7 +15,6 @@ CREATE TABLE IF NOT EXISTS `user_message_%s`
     `create_time`  BIGINT  NOT NULL DEFAULT 0 COMMENT '创建时间',
     `update_time`  BIGINT  NOT NULL DEFAULT 0 COMMENT '更新时间',
     `deleted`      TINYINT NOT NULL DEFAULT 0 COMMENT '消息删除状态',
-    INDEX `USER_MESSAGE_U_IDX` (`user_id`),
-    INDEX `USER_MESSAGE_CTIME_IDX` (`create_time`),
+    INDEX `USER_MESSAGE_Time_IDX` (`user_id`, `create_time`),
     UNIQUE INDEX `USER_MESSAGE_IDX` (`user_id`, `session_id`, `msg_id`)
 );

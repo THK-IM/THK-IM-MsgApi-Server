@@ -21,6 +21,7 @@ var ErrMemberCnt = errors.New("member count error")
 
 type (
 	SessionUser struct {
+		Id         int64  `gorm:"id" json:"id"`
 		SessionId  int64  `gorm:"session_id" json:"session_id"`
 		UserId     int64  `gorm:"user_id" json:"user_id"`
 		Type       int    `gorm:"type" json:"type"`

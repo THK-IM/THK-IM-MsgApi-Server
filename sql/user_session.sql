@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS `user_session_%s`
 (
+    `id`          BIGINT  PRIMARY KEY NOT NULL auto_increment,
     `session_id`  BIGINT  NOT NULL,
     `user_id`     BIGINT  NOT NULL,
     `parent_id`   BIGINT  NOT NULL DEFAULT 0 COMMENT  '父sessionId',
@@ -16,7 +17,6 @@ CREATE TABLE IF NOT EXISTS `user_session_%s`
     `update_time` BIGINT  NOT NULL DEFAULT 0 COMMENT '更新时间',
     `create_time` BIGINT  NOT NULL DEFAULT 0 COMMENT '创建时间',
     `deleted`     TINYINT NOT NULL DEFAULT 0 COMMENT '会话删除状态',
-    INDEX `USER_SESSION_U_IDX` (`user_id`),
-    INDEX `USER_SESSION_TIME_IDX` (`update_time`),
+    INDEX `USER_SESSION_Time_IDX` (`user_id`, `update_time`),
     UNIQUE INDEX `USER_SESSION_IDX` (`session_id`, `user_id`, `entity_id`, `type`)
 );

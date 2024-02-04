@@ -22,6 +22,7 @@ const (
 
 type (
 	UserSession struct {
+		Id         int64   `gorm:"id" json:"id"`
 		SessionId  int64   `gorm:"session_id" json:"session_id"`
 		UserId     int64   `gorm:"user_id" json:"user_id"`
 		ParentId   int64   `gorm:"parent_id" json:"parent_id"`

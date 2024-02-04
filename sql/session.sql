@@ -8,6 +8,5 @@ CREATE TABLE IF NOT EXISTS `session_%s`
     `ext_data`    TEXT                        COMMENT '扩展字段',
     `update_time` BIGINT             NOT NULL DEFAULT 0 COMMENT '更新时间',
     `create_time` BIGINT             NOT NULL DEFAULT 0 COMMENT '创建时间',
-    `deleted`     TINYINT            NOT NULL DEFAULT 0 COMMENT '会话删除状态',
-    UNIQUE INDEX `SESSION_IDX` (`id`)
+    `deleted`     TINYINT            NOT NULL DEFAULT 0 COMMENT '会话删除状态'
 );

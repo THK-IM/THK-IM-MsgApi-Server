@@ -11,7 +11,7 @@ import (
 
 type (
 	SessionObject struct {
-		Id         int64 `gorm:"id" json:"id"`
+		ObjectId   int64 `gorm:"object_id" json:"object_id"`
 		SId        int64 `gorm:"s_id" json:"s_id"`
 		FromUserId int64 `gorm:"from_user_id" json:"from_user_id"`
 		ClientId   int64 `gorm:"client_id" json:"client_id"`
@@ -44,8 +44,8 @@ func (d defaultSessionObjectModel) AddSessionObjects(sId int64, fromUIds, client
 	if len(objects) > 0 {
 		now := time.Now().UnixMilli()
 		for i, object := range objects {
-			ids = append(ids, object.Id)
-			object.Id = objects[i].Id
+			ids = append(ids, object.ObjectId)
+			object.ObjectId = objects[i].ObjectId
 			object.SId = newSId
 			object.FromUserId = newFromUId
 			object.ClientId = newClientMsgId
@@ -59,7 +59,7 @@ func (d defaultSessionObjectModel) AddSessionObjects(sId int64, fromUIds, client
 
 func (d defaultSessionObjectModel) Insert(id, sId, fromUId, clientId int64) (int64, error) {
 	o := &SessionObject{
-		Id:         id,
+		ObjectId:   id,
 		SId:        sId,
 		FromUserId: fromUId,
 		ClientId:   clientId,

@@ -18,6 +18,7 @@ const (
 
 type (
 	UserMessage struct {
+		Id         int64   `gorm:"id" json:"id"`
 		MsgId      int64   `gorm:"msg_id" json:"msg_id"`
 		ClientId   int64   `gorm:"client_id" json:"client_id"`
 		UserId     int64   `gorm:"user_id" json:"user_id"`

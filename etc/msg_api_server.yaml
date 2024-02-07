@@ -52,7 +52,7 @@ Models:
   - Name: "session_object"
     Shards: 5
 ObjectStorage:
-  Endpoint: ${OS_Endpoint}
+  Endpoint: ${OS_ENDPOINT}
   Bucket: ${OS_BUCKET}
   AK: ${OS_AK}
   SK: ${OS_SK}

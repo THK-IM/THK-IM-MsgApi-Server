@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/thk-im/thk-im-base-server/snowflake"
@@ -45,7 +46,7 @@ type (
 		InsertMessage(clientId int64, fromUserId int64, sessionId int64, msgId int64, msgContent string, extData *string,
 			msgType int, atUserIds *string, replayMsgId *int64) (*SessionMessage, error)
 		FindMessageByClientId(sessionId, clientId, fromUId int64) (*SessionMessage, error)
-		GetSessionMessages(sessionId, ctime int64, offset, count int, msgIds []int64) ([]*SessionMessage, error)
+		GetSessionMessages(sessionId, ctime int64, offset, count int, msgIds []int64, asc int8) ([]*SessionMessage, error)
 	}
 
 	defaultSessionMessageModel struct {
@@ -122,15 +123,24 @@ func (d defaultSessionMessageModel) FindMessageByClientId(sessionId, clientId, f
 	return result, err
 }
 
-func (d defaultSessionMessageModel) GetSessionMessages(sessionId, ctime int64, offset, count int, msgIds []int64) ([]*SessionMessage, error) {
+func (d defaultSessionMessageModel) GetSessionMessages(sessionId, ctime int64, offset, count int, msgIds []int64, asc int8) ([]*SessionMessage, error) {
+
+	sqlBuffer := bytes.NewBufferString("select * from " + d.genSessionMessageTableName(sessionId) + " where session_id = ? ")
+	if len(msgIds) > 0 {
+		sqlBuffer.WriteString("and msg_id in ? ")
+	}
+	if asc == 0 { // 降序
+		sqlBuffer.WriteString("and create_time <= ? order by create_time desc ")
+	} else {
+		sqlBuffer.WriteString("and create_time >= ? order by create_time ")
+	}
+	sqlBuffer.WriteString("limit ?, ? ")
 	result := make([]*SessionMessage, 0)
-	if len(msgIds) == 0 {
-		strSql := "select * from " + d.genSessionMessageTableName(sessionId) + " where session_id = ? and deleted = 0 and create_time <= ? order by create_time desc limit ?,?"
-		err := d.db.Raw(strSql, sessionId, ctime, offset, count).Scan(&result).Error
+	if len(msgIds) > 0 {
+		err := d.db.Raw(sqlBuffer.String(), sessionId, msgIds, ctime, offset, count).Scan(&result).Error
 		return result, err
 	} else {
-		strSql := "select * from " + d.genSessionMessageTableName(sessionId) + " where session_id = ? and deleted = 0 and msg_id in ? and create_time <= ? order by create_time desc limit ?,?"
-		err := d.db.Raw(strSql, sessionId, msgIds, ctime, offset, count).Scan(&result).Error
+		err := d.db.Raw(sqlBuffer.String(), sessionId, ctime, offset, count).Scan(&result).Error
 		return result, err
 	}
 }

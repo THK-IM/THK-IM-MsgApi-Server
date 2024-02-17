@@ -6,6 +6,7 @@ type GetSessionMessageReq struct {
 	Offset int    `json:"offset" form:"offset"`
 	Count  int    `json:"count" form:"count"`
 	MsgIds string `json:"msg_ids" form:"msg_ids"`
+	Asc    int8   `json:"asc" form:"asc"`
 }
 
 type DelSessionMessageReq struct {

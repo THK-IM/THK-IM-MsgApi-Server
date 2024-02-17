@@ -87,7 +87,7 @@ func (l *MessageLogic) GetSessionMessages(req dto.GetSessionMessageReq, claims b
 			}
 		}
 	}
-	sessionMessages, err := l.appCtx.SessionMessageModel().GetSessionMessages(req.SId, req.CTime, req.Offset, req.Count, msgIds)
+	sessionMessages, err := l.appCtx.SessionMessageModel().GetSessionMessages(req.SId, req.CTime, req.Offset, req.Count, msgIds, req.Asc)
 	if err != nil {
 		return nil, err
 	}

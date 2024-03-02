@@ -94,15 +94,14 @@ func (l *MessageLogic) ReeditUserMessage(req dto.ReeditUserMessageReq, claims ba
 			return errorx.ErrMessageTypeNotSupport
 		}
 		sendMessageReq := dto.SendMessageReq{
-			CId:    l.genClientId(),
-			SId:    req.SId,
-			Type:   model.MsgTypeReedit,
-			FUid:   req.UId,
-			CTime:  time.Now().UnixMilli(),
-			Body:   req.Content,
-			RMsgId: &req.MsgId,
+			CId:   l.genClientId(),
+			SId:   req.SId,
+			Type:  model.MsgTypeReedit,
+			FUid:  req.UId,
+			CTime: time.Now().UnixMilli(),
+			Body:  req.Content,
 		} // 发送给session下的所有人
-		if _, err = l.SendMessage(sendMessageReq, nil); err != nil {
+		if _, err = l.SendMessage(sendMessageReq, claims); err != nil {
 			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("ReeditUserMessage err:%v %v", req, err)
 		}
 	} else {

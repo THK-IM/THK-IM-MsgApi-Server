@@ -151,7 +151,7 @@ func (l *MessageLogic) SendMessage(req dto.SendMessageReq, claims baseDto.ThkCla
 			return nil, errMessage
 		}
 	}
-	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(sessionMessage, session.Type, receivers, nil); err != nil {
+	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(sessionMessage, session.Type, receivers, claims); err != nil {
 		return nil, errorx.ErrMessageDeliveryFailed
 	} else {
 		return &dto.SendMessageRes{

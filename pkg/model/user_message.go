@@ -36,7 +36,8 @@ type (
 	}
 
 	UserMessageModel interface {
-		FindUserMessages(userId, sessionId int64, messageId []int64) ([]*UserMessage, error)
+		FindUserMessages(userId, sessionId int64, messageIds []int64) ([]*UserMessage, error)
+		FindUserMessageByClientId(userId, sessionId, clientId int64) (*UserMessage, error)
 		FindUserMessage(userId, sessionId, messageId int64) (*UserMessage, error)
 		InsertUserMessage(m *UserMessage) error
 		AckUserMessages(userId int64, sessionId int64, messageIds []int64) error
@@ -54,11 +55,18 @@ type (
 	}
 )
 
-func (d defaultUserMessageModel) FindUserMessages(userId, sessionId int64, messageId []int64) ([]*UserMessage, error) {
+func (d defaultUserMessageModel) FindUserMessages(userId, sessionId int64, messageIds []int64) ([]*UserMessage, error) {
 	results := make([]*UserMessage, 0)
 	strSql := "select * from " + d.genUserMessageTableName(userId) + " where user_id = ? and session_id = ? and msg_id in ?"
-	err := d.db.Raw(strSql, userId, sessionId, messageId).Scan(results).Error
+	err := d.db.Raw(strSql, userId, sessionId, messageIds).Scan(&results).Error
 	return results, err
+}
+
+func (d defaultUserMessageModel) FindUserMessageByClientId(userId, sessionId, clientId int64) (*UserMessage, error) {
+	result := &UserMessage{}
+	strSql := "select * from " + d.genUserMessageTableName(userId) + " where user_id = ? and session_id = ? and from_user_id = ? and client_id = ?"
+	err := d.db.Raw(strSql, userId, sessionId, userId, clientId).Scan(result).Error
+	return result, err
 }
 
 func (d defaultUserMessageModel) FindUserMessage(userId, sessionId, messageId int64) (*UserMessage, error) {

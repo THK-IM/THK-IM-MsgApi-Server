@@ -18,9 +18,12 @@ func (l *MessageLogic) AckUserMessages(req dto.AckUserMessagesReq, claims baseDt
 }
 
 func (l *MessageLogic) ReadUserMessages(req dto.ReadUserMessageReq, claims baseDto.ThkClaims) error {
-	// 对消息发件人发送已读消息
-	for _, msgId := range req.MsgIds {
-		if userMessage, err := l.appCtx.UserMessageModel().FindUserMessage(req.UId, req.SId, msgId); err == nil {
+	session, errSession := l.appCtx.SessionModel().FindSession(req.SId)
+	if errSession != nil {
+		return errorx.ErrSessionInvalid
+	}
+	if userMessages, err := l.appCtx.UserMessageModel().FindUserMessages(req.UId, req.SId, req.MsgIds); err == nil {
+		for _, userMessage := range userMessages {
 			if userMessage.MsgId == 0 {
 				return errorx.ErrSessionMessageInvalid
 			}
@@ -36,12 +39,13 @@ func (l *MessageLogic) ReadUserMessages(req dto.ReadUserMessageReq, claims baseD
 				RMsgId:    &userMessage.MsgId,
 				Receivers: []int64{userMessage.FromUserId, req.UId}, // 发送给对方和自己
 			}
-			if _, err = l.SendMessage(sendMessageReq, claims); err != nil {
+			// 对消息发件人发送已读消息
+			if _, err = l.SendUserMessage(session, sendMessageReq, claims); err != nil {
 				l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("ReadUserMessages err:%v, %v", req, err)
 			}
-		} else {
-			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("ReadUserMessages err:%v, %v", req, err)
 		}
+	} else {
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("ReadUserMessages err:%v, %v", req, err)
 	}
 	return nil
 }

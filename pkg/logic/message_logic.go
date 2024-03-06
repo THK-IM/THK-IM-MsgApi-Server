@@ -126,6 +126,8 @@ func (l *MessageLogic) SendMessage(req dto.SendMessageReq, claims baseDto.ThkCla
 			return nil, errorx.ErrSessionMuted
 		}
 	}
+
+	// 如果是单聊 需要判断对方是否拒收
 	if session.Type == model.SingleSessionType {
 		rejectReceivers := l.appCtx.SessionUserModel().FindUIdsInSessionContainStatus(req.SId, model.RejectBitInUserSessionStatus, req.Receivers)
 		if len(rejectReceivers) > 0 {
@@ -133,15 +135,23 @@ func (l *MessageLogic) SendMessage(req dto.SendMessageReq, claims baseDto.ThkCla
 		}
 	}
 
+	// 如果是超级群 读扩散模型，写入session_message表
+	if session.Type == model.SuperGroupSessionType {
+		return l.SendSessionMessage(session, req, claims)
+	}
+	// 其他情况使用使用写扩散模型，写入user_message表
+	return l.SendUserMessage(session, req, claims)
+}
+
+func (l *MessageLogic) SendSessionMessage(session *model.Session, req dto.SendMessageReq, claims baseDto.ThkClaims) (*dto.SendMessageRes, error) {
 	receivers := l.appCtx.SessionUserModel().FindUIdsInSessionWithoutStatus(req.SId, model.RejectBitInUserSessionStatus, req.Receivers)
 	if receivers == nil || len(receivers) == 0 {
 		return nil, errorx.ErrUserReject
 	}
-
 	// 根据clientId和fromUserId查询是否已经发送过消息
 	sessionMessage, errMessage := l.appCtx.SessionMessageModel().FindMessageByClientId(req.SId, req.CId, req.FUid)
 	// 如果已经发送过，直接取数据库里的数据库, 没有发送过则插入数据库
-	if sessionMessage == nil || sessionMessage.SessionId == 0 {
+	if sessionMessage == nil || sessionMessage.MsgId == 0 {
 		// 插入数据库发送消息
 		msgId := int64(l.appCtx.SnowflakeNode().Generate())
 		sessionMessage, errMessage = l.appCtx.SessionMessageModel().InsertMessage(
@@ -151,7 +161,9 @@ func (l *MessageLogic) SendMessage(req dto.SendMessageReq, claims baseDto.ThkCla
 			return nil, errMessage
 		}
 	}
-	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(sessionMessage, session.Type, receivers, claims); err != nil {
+
+	dtoMsg := l.convSessionMessage2Message(sessionMessage)
+	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(dtoMsg, session.Type, receivers, claims); err != nil {
 		return nil, errorx.ErrMessageDeliveryFailed
 	} else {
 		return &dto.SendMessageRes{
@@ -161,7 +173,52 @@ func (l *MessageLogic) SendMessage(req dto.SendMessageReq, claims baseDto.ThkCla
 			OfflineIds: offlineUIds,
 		}, nil
 	}
+}
 
+func (l *MessageLogic) SendUserMessage(session *model.Session, req dto.SendMessageReq, claims baseDto.ThkClaims) (*dto.SendMessageRes, error) {
+	receivers := l.appCtx.SessionUserModel().FindUIdsInSessionWithoutStatus(req.SId, model.RejectBitInUserSessionStatus, req.Receivers)
+	if receivers == nil || len(receivers) == 0 {
+		return nil, errorx.ErrUserReject
+	}
+	// 根据clientId和fromUserId查询是否已经发送过消息
+	userMessage, errMessage := l.appCtx.UserMessageModel().FindUserMessageByClientId(req.FUid, req.SId, req.CId)
+	// 如果已经发送过，直接取数据库里的数据库, 没有发送过则插入数据库
+	if userMessage == nil || userMessage.MsgId == 0 {
+		// 插入数据库发送消息
+		msgId := int64(l.appCtx.SnowflakeNode().Generate())
+		now := time.Now().UnixMilli()
+		userMessage = &model.UserMessage{
+			MsgId:      msgId,
+			ClientId:   req.CId,
+			UserId:     req.FUid,
+			SessionId:  req.SId,
+			FromUserId: req.FUid,
+			MsgType:    req.Type,
+			MsgContent: req.Body,
+			ReplyMsgId: req.RMsgId,
+			AtUsers:    req.AtUsers,
+			ExtData:    req.ExtData,
+			Status:     model.MsgStatusAcked | model.MsgStatusRead,
+			CreateTime: now,
+			UpdateTime: now,
+		}
+		errMessage = l.appCtx.UserMessageModel().InsertUserMessage(userMessage)
+		if errMessage != nil {
+			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("SendMessage InsertMessage %v, %v", errMessage, req)
+			return nil, errMessage
+		}
+	}
+	dtoMsg := l.convUserMessage2Message(userMessage)
+	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(dtoMsg, session.Type, receivers, claims); err != nil {
+		return nil, errorx.ErrMessageDeliveryFailed
+	} else {
+		return &dto.SendMessageRes{
+			MsgId:      userMessage.MsgId,
+			CreateTime: userMessage.CreateTime,
+			OnlineIds:  onlineUIds,
+			OfflineIds: offlineUIds,
+		}, nil
+	}
 }
 
 func (l *MessageLogic) SendSysMessage(req dto.SendSysMessageReq, claims baseDto.ThkClaims) (*dto.SendSysMessageRes, error) {
@@ -185,8 +242,8 @@ func (l *MessageLogic) SendSysMessage(req dto.SendSysMessageReq, claims baseDto.
 		UpdateTime: now,
 		Deleted:    0,
 	}
-
-	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(sessionMessage, sessionType, req.Receivers, claims); err != nil {
+	dtoMsg := l.convSessionMessage2Message(sessionMessage)
+	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(dtoMsg, sessionType, req.Receivers, claims); err != nil {
 		return nil, errorx.ErrMessageDeliveryFailed
 	} else {
 		return &dto.SendSysMessageRes{
@@ -199,33 +256,21 @@ func (l *MessageLogic) SendSysMessage(req dto.SendSysMessageReq, claims baseDto.
 
 }
 
-func (l *MessageLogic) publishSendMessageEvents(sessionMsg *model.SessionMessage, sessionType int, receivers []int64, claims baseDto.ThkClaims) ([]int64, []int64, error) {
-	userMsg := &dto.Message{
-		CId:     sessionMsg.ClientId,
-		MsgId:   sessionMsg.MsgId,
-		SId:     sessionMsg.SessionId,
-		FUid:    sessionMsg.FromUserId,
-		AtUsers: sessionMsg.AtUsers,
-		Type:    sessionMsg.MsgType,
-		ExtData: sessionMsg.ExtData,
-		Body:    sessionMsg.MsgContent,
-		RMsgId:  sessionMsg.ReplyMsgId,
-		CTime:   sessionMsg.CreateTime,
-	}
-	msgJson, err := json.Marshal(userMsg)
+func (l *MessageLogic) publishSendMessageEvents(dtoMsg *dto.Message, sessionType int, receivers []int64, claims baseDto.ThkClaims) ([]int64, []int64, error) {
+	msgJson, err := json.Marshal(dtoMsg)
 	if err != nil {
 		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("publishSendMessageEvents json err", err)
 		return nil, nil, err
 	}
 	msgJsonStr := string(msgJson)
-	deliverKey := fmt.Sprintf("session-%d", userMsg.SId)
+	deliverKey := fmt.Sprintf("session-%d", dtoMsg.SId)
 	onlineUIds, offlineUIds, errPubPush := l.pubPushMessageEvent(event.SignalNewMessage, msgJsonStr, receivers, deliverKey, claims)
 	if errPubPush != nil {
 		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("pubPushMessageEvent, publish err:", errPubPush)
 		return nil, nil, errPubPush
 	}
 	if sessionType != model.SuperGroupSessionType {
-		errPubSave := l.pubSaveMsgEvent(msgJsonStr, receivers, userMsg.SId)
+		errPubSave := l.pubSaveMsgEvent(msgJsonStr, receivers, dtoMsg.SId)
 		if errPubSave != nil {
 			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("pubSaveMsgEvent, err:", errPubSave)
 			return nil, nil, errPubPush

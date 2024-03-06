@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	MsgStatusInit       = 0
 	MsgStatusAcked      = 1
 	MsgStatusClientRead = 2 // 客户端已读
 	MsgStatusServerRead = 4 // 服务端已读

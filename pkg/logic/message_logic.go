@@ -208,6 +208,7 @@ func (l *MessageLogic) SendUserMessage(session *model.Session, req dto.SendMessa
 			return nil, errMessage
 		}
 	}
+	userMessage.Status = model.MsgStatusInit
 	dtoMsg := l.convUserMessage2Message(userMessage)
 	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(dtoMsg, session.Type, receivers, claims); err != nil {
 		return nil, errorx.ErrMessageDeliveryFailed

@@ -51,23 +51,14 @@ func (l *MessageLogic) ReadUserMessages(req dto.ReadUserMessageReq, claims baseD
 }
 
 func (l *MessageLogic) RevokeUserMessage(req dto.RevokeUserMessageReq, claims baseDto.ThkClaims) error {
-	if sessionMessage, err := l.appCtx.SessionMessageModel().FindSessionMessage(req.SId, req.MsgId, req.UId); err == nil {
-		if sessionMessage.SessionId == 0 {
+	if userMessage, err := l.appCtx.UserMessageModel().FindUserMessage(req.UId, req.SId, req.MsgId); err == nil {
+		if userMessage.SessionId == 0 || userMessage.Deleted == 1 {
 			return errorx.ErrSessionMessageInvalid
 		}
-		if sessionMessage.MsgType < 0 { // 小于0的类型消息为状态操作消息，不能发送撤回
+		if userMessage.MsgType < 0 { // 小于0的类型消息为状态操作消息，不能重新编辑
 			return errorx.ErrMessageTypeNotSupport
 		}
-		if sessionMessage.Deleted == 1 { // 被删除了则不做处理
-			return nil
-		}
-		// 删除session的消息
-		affectedRow, errRevoke := l.appCtx.SessionMessageModel().DeleteSessionMessage(
-			sessionMessage.SessionId, sessionMessage.MsgId, sessionMessage.FromUserId)
-		if errRevoke != nil {
-			return errRevoke
-		}
-		if affectedRow == 0 {
+		if userMessage.Deleted == 1 { // 被删除了则不做处理
 			return nil
 		}
 		sendMessageReq := dto.SendMessageReq{
@@ -90,11 +81,11 @@ func (l *MessageLogic) RevokeUserMessage(req dto.RevokeUserMessageReq, claims ba
 }
 
 func (l *MessageLogic) ReeditUserMessage(req dto.ReeditUserMessageReq, claims baseDto.ThkClaims) error {
-	if sessionMessage, err := l.appCtx.SessionMessageModel().FindSessionMessage(req.SId, req.MsgId, req.UId); err == nil {
-		if sessionMessage.SessionId == 0 || sessionMessage.Deleted == 1 {
+	if userMessage, err := l.appCtx.UserMessageModel().FindUserMessage(req.UId, req.SId, req.MsgId); err == nil {
+		if userMessage.SessionId == 0 || userMessage.Deleted == 1 {
 			return errorx.ErrSessionMessageInvalid
 		}
-		if sessionMessage.MsgType < 0 { // 小于0的类型消息为状态操作消息，不能重新编辑
+		if userMessage.MsgType < 0 { // 小于0的类型消息为状态操作消息，不能重新编辑
 			return errorx.ErrMessageTypeNotSupport
 		}
 		sendMessageReq := dto.SendMessageReq{

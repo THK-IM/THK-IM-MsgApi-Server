@@ -40,6 +40,10 @@ func (c *Context) SessionObjectModel() model.SessionObjectModel {
 	return c.Context.ModelMap["session_object"].(model.SessionObjectModel)
 }
 
+func (c *Context) LoginApi() userSdk.LoginApi {
+	return c.Context.SdkMap["login_api"].(userSdk.LoginApi)
+}
+
 func (c *Context) UserApi() userSdk.UserApi {
 	return c.Context.SdkMap["user_api"].(userSdk.UserApi)
 }

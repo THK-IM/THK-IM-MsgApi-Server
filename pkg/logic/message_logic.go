@@ -310,8 +310,9 @@ func (l *MessageLogic) pubSaveMsgEvent(msgBody string, receivers []int64, sessio
 func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, deliverKey string, claims baseDto.ThkClaims) ([]int64, []int64, error) {
 	uidOnlineKeys := make([]string, 0)
 	for _, uid := range uIds {
-		uidOnlineKey := fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, uid)
-		uidOnlineKeys = append(uidOnlineKeys, uidOnlineKey)
+		uidOnlineKeys = append(uidOnlineKeys, fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, PlatformAndroid, uid))
+		uidOnlineKeys = append(uidOnlineKeys, fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, PlatformIOS, uid))
+		uidOnlineKeys = append(uidOnlineKeys, fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, PlatformWeb, uid))
 	}
 	onlineUIds := make([]int64, 0)
 	onlineUsers, err := l.appCtx.RedisCache().MGet(context.Background(), uidOnlineKeys...).Result()

@@ -8,10 +8,13 @@ import (
 
 func LoadSdks(sdkConfigs []conf.Sdk, logger *logrus.Entry) map[string]interface{} {
 	sdkMap := make(map[string]interface{})
-	for _, c := range sdkConfigs {
-		if c.Name == "user_api" {
-			userApi := userSdk.NewUserApi(c, logger)
-			sdkMap[c.Name] = userApi
+	for _, sdkConfig := range sdkConfigs {
+		if sdkConfig.Name == "login_api" {
+			loginApi := userSdk.NewLoginApi(sdkConfig, logger)
+			sdkMap[sdkConfig.Name] = loginApi
+		} else if sdkConfig.Name == "user_api" {
+			userApi := userSdk.NewUserApi(sdkConfig, logger)
+			sdkMap[sdkConfig.Name] = userApi
 		}
 	}
 	return sdkMap

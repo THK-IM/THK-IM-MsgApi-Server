@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/event"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
+	userDto "github.com/thk-im/thk-im-user-server/pkg/dto"
+	"strings"
 	"time"
 )
 
@@ -23,44 +24,65 @@ func NewUserLogic(appCtx *app.Context) UserLogic {
 }
 
 func (l *UserLogic) UpdateUserOnlineStatus(req *dto.PostUserOnlineReq, claims baseDto.ThkClaims) error {
-	key := fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, req.UId)
-	var err error
+	var err error = nil
+	var cacheOnlineStatus *dto.UserOnlineStatus = nil
+	key := fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, req.Platform, req.UId)
+	cacheStatus := l.appCtx.RedisCache().Get(context.Background(), key).String()
+	if !strings.EqualFold("", cacheStatus) {
+		_ = json.Unmarshal([]byte(cacheStatus), &cacheOnlineStatus)
+	}
 	if req.Online {
 		timeout := time.Duration(l.appCtx.Config().IM.OnlineTimeout)
-		dtoUserOnlineStatus := &dto.UserOnlineStatus{
-			UId:       req.UId,
-			Platform:  req.Platform,
-			ConnId:    req.ConnId,
-			Timestamp: req.Timestamp,
-			NodeId:    req.NodeId,
+		newCacheOnlineStatus := &dto.UserOnlineStatus{
+			UId:         req.UId,
+			Platform:    req.Platform,
+			ConnId:      req.ConnId,
+			TimestampMs: req.TimestampMs,
+			NodeId:      req.NodeId,
 		}
-		jsonBytes, errJson := json.Marshal(dtoUserOnlineStatus)
+		jsonBytes, errJson := json.Marshal(newCacheOnlineStatus)
 		if errJson != nil {
 			return errJson
 		}
 		err = l.appCtx.RedisCache().Set(context.Background(), key, string(jsonBytes), timeout*time.Second).Err()
+		if err != nil {
+			if cacheOnlineStatus == nil {
+				l.notify(req, claims)
+			}
+		}
 	} else {
-		js, errGet := l.appCtx.RedisCache().Get(context.Background(), key+"23").Result()
-		if errGet == nil {
-			dtoUserOnlineStatus := &dto.UserOnlineStatus{}
-			err = json.Unmarshal([]byte(js), dtoUserOnlineStatus)
-			if err == nil {
-				if dtoUserOnlineStatus.ConnId == req.ConnId {
-					l.appCtx.RedisCache().Del(context.Background(), key)
+		if cacheOnlineStatus != nil && cacheOnlineStatus.ConnId == req.ConnId {
+			err = l.appCtx.RedisCache().Del(context.Background(), key).Err()
+			if err != nil {
+				if cacheOnlineStatus == nil {
+					l.notify(req, claims)
 				}
-			} else {
-				l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateUserOnlineStatus %v %v", js, err)
 			}
 		}
 	}
 	return err
 }
 
+func (l *UserLogic) notify(req *dto.PostUserOnlineReq, claims baseDto.ThkClaims) {
+	userOnlineStatusReq := &userDto.UserOnlineStatusReq{
+		UserId:      req.UId,
+		IsOnline:    req.Online,
+		TimestampMs: req.TimestampMs,
+		ConnId:      req.ConnId,
+		Platform:    req.Platform,
+	}
+	userApi := l.appCtx.UserApi()
+	if userApi != nil {
+		_ = l.appCtx.UserApi().PostUserOnlineStatus(userOnlineStatusReq, claims)
+	}
+}
+
 func (l *UserLogic) GetUsersOnlineStatus(uIds []int64, claims baseDto.ThkClaims) (*dto.QueryUsersOnlineStatusRes, error) {
 	uidOnlineKeys := make([]string, 0)
 	for _, uid := range uIds {
-		uidOnlineKey := fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, uid)
-		uidOnlineKeys = append(uidOnlineKeys, uidOnlineKey)
+		uidOnlineKeys = append(uidOnlineKeys, fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, PlatformAndroid, uid))
+		uidOnlineKeys = append(uidOnlineKeys, fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, PlatformIOS, uid))
+		uidOnlineKeys = append(uidOnlineKeys, fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, PlatformWeb, uid))
 	}
 	onlineUsers, err := l.appCtx.RedisCache().MGet(context.Background(), uidOnlineKeys...).Result()
 	if err != nil {

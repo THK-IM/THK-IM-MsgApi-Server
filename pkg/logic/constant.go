@@ -5,5 +5,9 @@ const (
 	sessionUpdateLockKey     = "%s:se:m:%d"
 	userSessionUpdateLockKey = "%s:u:se:m:%d:%d"
 
-	userOnlineKey = "%s:u:%d"
+	userOnlineKey = "%s:olu:%s:%d"
+
+	PlatformAndroid = "Android"
+	PlatformIOS     = "IOS"
+	PlatformWeb     = "Web"
 )

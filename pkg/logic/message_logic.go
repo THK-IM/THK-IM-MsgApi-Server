@@ -322,7 +322,7 @@ func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, del
 	} else {
 		for index, onlineUser := range onlineUsers {
 			if onlineUser != nil {
-				onlineUIds = append(onlineUIds, uIds[index])
+				onlineUIds = append(onlineUIds, uIds[index/3])
 			}
 		}
 	}

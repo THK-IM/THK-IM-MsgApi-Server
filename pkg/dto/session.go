@@ -49,12 +49,13 @@ type DelSessionReq struct {
 }
 
 type UpdateUserSessionReq struct {
-	UId      int64   `json:"u_id"`
-	SId      int64   `json:"s_id"`
-	NoteName *string `json:"note_name"`
-	Top      *int64  `json:"top"`
-	Status   *int    `json:"status"`
-	ParentId *int64  `json:"parent_id"`
+	UId        int64   `json:"u_id"`
+	SId        int64   `json:"s_id"`
+	NoteName   *string `json:"note_name"`
+	NoteAvatar *string `json:"note_avatar"`
+	Top        *int64  `json:"top"`
+	Status     *int    `json:"status"`
+	ParentId   *int64  `json:"parent_id"`
 }
 
 type QueryLatestUserSessionReq struct {

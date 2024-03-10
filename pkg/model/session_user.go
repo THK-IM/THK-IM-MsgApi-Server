@@ -46,7 +46,7 @@ type (
 		AddUser(session *Session, entityIds []int64, userIds []int64, role []int, noteNames, noteAvatars []string, maxCount int) ([]*UserSession, error)
 		DelUser(session *Session, userIds []int64) (err error)
 		UpdateType(sessionId int64, sessionType int) (err error)
-		UpdateUser(sessionId int64, userIds []int64, role, status *int, noteName, mute *string) (err error)
+		UpdateUser(sessionId int64, userIds []int64, role, status *int, noteName, noteAvatar, mute *string) (err error)
 		DelSession(sessionId int64) error
 	}
 
@@ -264,8 +264,8 @@ func (d defaultSessionUserModel) UpdateType(sessionId int64, sessionType int) (e
 	return d.db.Exec(sql, sessionType, t, sessionId).Error
 }
 
-func (d defaultSessionUserModel) UpdateUser(sessionId int64, userIds []int64, role, status *int, noteName, mute *string) (err error) {
-	if role == nil && status == nil && mute == nil {
+func (d defaultSessionUserModel) UpdateUser(sessionId int64, userIds []int64, role, status *int, noteName, noteAvatar, mute *string) (err error) {
+	if role == nil && status == nil && mute == nil && noteName == nil && noteAvatar == nil {
 		return nil
 	}
 	t := time.Now().UnixMilli()
@@ -278,7 +278,10 @@ func (d defaultSessionUserModel) UpdateUser(sessionId int64, userIds []int64, ro
 		sqlBuffer.WriteString(fmt.Sprintf(" status = %d, ", *status))
 	}
 	if noteName != nil {
-		sqlBuffer.WriteString(fmt.Sprintf(" note_name = %s, ", *noteName))
+		sqlBuffer.WriteString(fmt.Sprintf(" note_name = '%s', ", *noteName))
+	}
+	if noteAvatar != nil {
+		sqlBuffer.WriteString(fmt.Sprintf(" note_avatar = '%s', ", *noteAvatar))
 	}
 	if mute != nil {
 		sqlBuffer.WriteString(fmt.Sprintf(" mute = %s, ", *mute))

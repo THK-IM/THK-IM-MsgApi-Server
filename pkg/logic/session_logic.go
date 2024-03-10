@@ -277,7 +277,7 @@ func (l *SessionLogic) UpdateUserSession(req dto.UpdateUserSessionReq, claims ba
 		nil, nil, nil, req.NoteName, req.Top, req.Status, nil, req.ParentId,
 	)
 	if err == nil {
-		err = l.appCtx.SessionUserModel().UpdateUser(req.SId, []int64{req.UId}, nil, req.Status, req.NoteName, nil)
+		err = l.appCtx.SessionUserModel().UpdateUser(req.SId, []int64{req.UId}, nil, req.Status, req.NoteName, req.NoteAvatar, nil)
 	} else {
 		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("UpdateUserSession, %v %v", req, err)
 	}

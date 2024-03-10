@@ -6,7 +6,6 @@ import (
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	baseErrorx "github.com/thk-im/thk-im-base-server/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
-	"github.com/thk-im/thk-im-msgapi-server/pkg/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/model"
 )
 
@@ -52,13 +51,9 @@ func (l *SessionLogic) AddSessionUser(sid int64, req dto.SessionAddUserReq, clai
 	if err != nil {
 		return err
 	}
-	maxCount := 0
-	if session.Type == model.GroupSessionType {
-		maxCount = l.appCtx.Config().IM.MaxGroupMember
-	} else if session.Type == model.SuperGroupSessionType {
+	maxCount := l.appCtx.Config().IM.MaxGroupMember
+	if session.Type == model.SuperGroupSessionType {
 		maxCount = l.appCtx.Config().IM.MaxSuperGroupMember
-	} else {
-		return errorx.ErrSessionType
 	}
 	roles := make([]int, 0)
 	entityIds := make([]int64, 0)

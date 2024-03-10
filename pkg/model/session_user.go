@@ -29,6 +29,7 @@ type (
 		Mute       int    `gorm:"mute" json:"mute"`
 		Status     int    `gorm:"status" json:"status"`
 		NoteName   string `gorm:"note_name" json:"note_name"`
+		NoteAvatar string `gorm:"note_name" json:"note_avatar"`
 		CreateTime int64  `gorm:"create_time" json:"create_time"`
 		UpdateTime int64  `gorm:"update_time" json:"update_time"`
 		Deleted    int8   `gorm:"deleted" json:"deleted"`
@@ -42,7 +43,7 @@ type (
 		FindSessionUserCount(sessionId int64) (int, error)
 		FindUIdsInSessionWithoutStatus(sessionId int64, status int, uIds []int64) []int64
 		FindUIdsInSessionContainStatus(sessionId int64, status int, uIds []int64) []int64
-		AddUser(session *Session, entityIds []int64, userIds []int64, role []int, maxCount int) ([]*UserSession, error)
+		AddUser(session *Session, entityIds []int64, userIds []int64, role []int, noteNames, noteAvatars []string, maxCount int) ([]*UserSession, error)
 		DelUser(session *Session, userIds []int64) (err error)
 		UpdateType(sessionId int64, sessionType int) (err error)
 		UpdateUser(sessionId int64, userIds []int64, role, status *int, noteName, mute *string) (err error)
@@ -155,7 +156,7 @@ func (d defaultSessionUserModel) FindUIdsInSessionContainStatus(sessionId int64,
 	return uIds
 }
 
-func (d defaultSessionUserModel) AddUser(session *Session, entityIds []int64, userIds []int64, role []int, maxCount int) (userSessions []*UserSession, err error) {
+func (d defaultSessionUserModel) AddUser(session *Session, entityIds []int64, userIds []int64, role []int, noteNames, noteAvatars []string, maxCount int) (userSessions []*UserSession, err error) {
 	tx := d.db.Begin()
 	defer func() {
 		if err == nil {
@@ -176,28 +177,35 @@ func (d defaultSessionUserModel) AddUser(session *Session, entityIds []int64, us
 	}
 
 	t := time.Now().UnixMilli()
-	sql1 := "insert into " + d.genSessionUserTableName(session.Id) +
-		" (session_id, user_id, role, type, create_time, update_time) values (?, ?, ?, ?, ?, ?) " +
-		"on duplicate key update role = ?, deleted = ?, update_time = ? "
-
+	sql1 := "insert into " + d.genSessionUserTableName(session.Id) + " " +
+		"(session_id, user_id, role, note_name, note_avatar, type, create_time, update_time) " +
+		"values (?, ?, ?, ?, ?, ?, ?, ?) " +
+		"on duplicate key update role = ?, note_name = ?, note_avatar = ?, deleted = ?, update_time = ? "
 	userMute := 0
 	if session.Mute == 1 {
 		userMute = 1
 	}
 	userSessions = make([]*UserSession, 0)
 	for index, id := range userIds {
-		if err = tx.Exec(sql1, session.Id, id, role[index], session.Type, t, t, role[index], 0, t).Error; err != nil {
+		if err = tx.Exec(sql1, session.Id, id, role[index], noteNames[index], noteAvatars[index], session.Type, t, t,
+			role[index], noteNames[index], noteAvatars[index], 0, t,
+		).Error; err != nil {
 			return nil, err
 		}
 
 		sql2 := "insert into " + d.genUserSessionTableName(id) + " " +
-			"(session_id, user_id, type, entity_id, role, name, remark, mute, ext_data, parent_id, " +
-			"create_time, update_time) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)  " +
-			"on duplicate key update  top = ?, role = ?, name = ?, remark = ?, mute = ?, " +
-			"deleted = ?, ext_data = ?, parent_id = ?, update_time = ? "
-		if err = tx.Exec(sql2, session.Id, id, session.Type, entityIds[index], role[index], session.Name,
-			session.Remark, userMute, session.ExtData, 0, t, t, 0, role[index], session.Name,
-			session.Remark, userMute, 0, session.ExtData, 0, t).Error; err != nil {
+			"(session_id, user_id, type, entity_id, role, name, remark, mute, ext_data, parent_id, note_name, " +
+			"note_avatar, create_time, update_time) " +
+			"values (?, ?, ?, ?, ?, ?, ?, " +
+			"?, ?, ?, ?, ?, ?, ?) " +
+			"on duplicate key update top = ?, role = ?, name = ?, remark = ?, mute = ?, " +
+			"deleted = ?, ext_data = ?, parent_id = ?, note_name = ?, note_avatar = ?, update_time = ? "
+		if err = tx.Exec(
+			sql2, session.Id, id, session.Type, entityIds[index], role[index], session.Name, session.Remark,
+			userMute, session.ExtData, 0, noteNames[index], noteAvatars[index], t, t,
+			0, role[index], session.Name, session.Remark, userMute,
+			0, session.ExtData, 0, noteNames[index], noteAvatars[index], t,
+		).Error; err != nil {
 			return nil, err
 		}
 		userSession := &UserSession{
@@ -211,6 +219,8 @@ func (d defaultSessionUserModel) AddUser(session *Session, entityIds []int64, us
 			Role:       role[index],
 			Mute:       userMute,
 			ExtData:    session.ExtData,
+			NoteName:   noteNames[index],
+			NoteAvatar: noteAvatars[index],
 			ParentId:   0,
 			Status:     0,
 			CreateTime: t,

@@ -1,13 +1,17 @@
 package dto
 
 type CreateSessionReq struct {
-	UId      int64   `json:"u_id" binding:"required"`
-	Type     int     `json:"type" binding:"required"`
-	EntityId int64   `json:"entity_id"` // 单聊type为对方用户id,group或supergroup为群id
-	Members  []int64 `json:"members"`   // 单聊时不用提交该字段
-	ExtData  *string `json:"ext_data"`  // 业务方扩展字段
-	Name     string  `json:"name"`      // session名
-	Remark   string  `json:"remark"`
+	UId            int64    `json:"u_id" binding:"required"`
+	UserNoteName   string   `json:"user_note_name"`
+	UserNoteAvatar string   `json:"user_note_avatar"`
+	Type           int      `json:"type" binding:"required"`
+	EntityId       int64    `json:"entity_id"`      // 单聊type为对方用户id,group或supergroup为群id
+	Members        []int64  `json:"members"`        // 单聊时不用提交该字段
+	MemberAvatars  []string `json:"member_avatars"` // 单聊时不用提交该字段
+	MemberNames    []string `json:"member_names"`   // 单聊时不用提交该字段
+	ExtData        *string  `json:"ext_data"`       // 业务方扩展字段
+	Name           string   `json:"name"`           // session名
+	Remark         string   `json:"remark"`
 }
 
 type CreateSessionRes struct {
@@ -68,33 +72,35 @@ type QueryUserSessionReq struct {
 }
 
 type UserSession struct {
-	SId      int64   `json:"s_id"`
-	Name     string  `json:"name"`
-	Remark   string  `json:"remark"`
-	Type     int     `json:"type"`
-	Status   int     `json:"status"`
-	Role     int     `json:"role"`
-	Mute     int     `json:"mute"`
-	Top      int64   `json:"top"`
-	NoteName string  `json:"note_name"`
-	Deleted  int8    `json:"deleted"`
-	EntityId int64   `json:"entity_id"`
-	ExtData  *string `json:"ext_data,omitempty"`
-	CTime    int64   `json:"c_time"`
-	MTime    int64   `json:"m_time"`
+	SId        int64   `json:"s_id"`
+	Name       string  `json:"name"`
+	Remark     string  `json:"remark"`
+	Type       int     `json:"type"`
+	Status     int     `json:"status"`
+	Role       int     `json:"role"`
+	Mute       int     `json:"mute"`
+	Top        int64   `json:"top"`
+	NoteName   string  `json:"note_name"`
+	NoteAvatar string  `json:"note_avatar"`
+	Deleted    int8    `json:"deleted"`
+	EntityId   int64   `json:"entity_id"`
+	ExtData    *string `json:"ext_data,omitempty"`
+	CTime      int64   `json:"c_time"`
+	MTime      int64   `json:"m_time"`
 }
 
 type SessionUser struct {
-	SId      int64  `json:"s_id"`
-	UId      int64  `json:"u_id"`
-	Type     int    `json:"type"`
-	Mute     int    `json:"mute"`
-	Role     int    `json:"role"`
-	Status   int    `json:"status"`
-	NoteName string `json:"note_name"`
-	Deleted  int8   `json:"deleted"`
-	CTime    int64  `json:"c_time"`
-	MTime    int64  `json:"m_time"`
+	SId        int64  `json:"s_id"`
+	UId        int64  `json:"u_id"`
+	Type       int    `json:"type"`
+	Mute       int    `json:"mute"`
+	Role       int    `json:"role"`
+	Status     int    `json:"status"`
+	NoteAvatar string `json:"note_avatar"`
+	NoteName   string `json:"note_name"`
+	Deleted    int8   `json:"deleted"`
+	CTime      int64  `json:"c_time"`
+	MTime      int64  `json:"m_time"`
 }
 
 type QueryLatestUserSessionsRes struct {
@@ -113,9 +119,11 @@ type QuerySessionUsersRes struct {
 }
 
 type SessionAddUserReq struct {
-	EntityId int64   `json:"entity_id" binding:"required"`
-	UIds     []int64 `json:"u_ids" binding:"required"`
-	Role     int     `json:"role" binding:"required"`
+	EntityId    int64    `json:"entity_id" binding:"required"`
+	UIds        []int64  `json:"u_ids" binding:"required"`
+	NoteNames   []string `json:"note_names"`
+	NoteAvatars []string `json:"note_avatars"`
+	Role        int      `json:"role" binding:"required"`
 }
 
 type SessionDelUserReq struct {

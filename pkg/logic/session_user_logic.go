@@ -57,11 +57,23 @@ func (l *SessionLogic) AddSessionUser(sid int64, req dto.SessionAddUserReq, clai
 	}
 	roles := make([]int, 0)
 	entityIds := make([]int64, 0)
-	for range req.UIds {
+	noteNames := make([]string, 0)
+	noteAvatars := make([]string, 0)
+	for i, _ := range req.UIds {
 		roles = append(roles, req.Role)
 		entityIds = append(entityIds, req.EntityId)
+		if i < len(req.NoteNames) {
+			noteNames = append(noteNames, req.NoteNames[i])
+		} else {
+			noteNames = append(noteNames, "")
+		}
+		if i < len(req.NoteAvatars) {
+			noteAvatars = append(noteAvatars, req.NoteAvatars[i])
+		} else {
+			noteAvatars = append(noteAvatars, "")
+		}
 	}
-	_, err = l.appCtx.SessionUserModel().AddUser(session, entityIds, req.UIds, roles, maxCount)
+	_, err = l.appCtx.SessionUserModel().AddUser(session, entityIds, req.UIds, roles, noteNames, noteAvatars, maxCount)
 	return err
 }
 

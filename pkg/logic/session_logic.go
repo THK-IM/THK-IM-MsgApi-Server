@@ -50,8 +50,10 @@ func (l *SessionLogic) CreateSession(req dto.CreateSessionReq, claims baseDto.Th
 				if errSession != nil {
 					return nil, errSession
 				}
-				userSessions, errUserSessions := l.appCtx.SessionUserModel().AddUser(session,
-					[]int64{userSession.EntityId}, []int64{userSession.UserId}, []int{model.SessionOwner}, 2)
+				userSessions, errUserSessions := l.appCtx.SessionUserModel().AddUser(
+					session, []int64{userSession.EntityId}, []int64{userSession.UserId},
+					[]int{model.SessionOwner}, []string{""}, []string{""}, 2,
+				)
 				if errUserSessions != nil {
 					return nil, errUserSessions
 				}
@@ -114,7 +116,9 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 		entityIds := []int64{req.EntityId, req.UId}
 		uIds := []int64{req.UId, req.EntityId}
 		roles := []int{model.SessionOwner, model.SessionOwner}
-		if userSessions, errUserSessions := l.appCtx.SessionUserModel().AddUser(session, entityIds, uIds, roles, 2); err != nil {
+		noteNames := []string{"", ""}
+		noteAvatars := []string{"", ""}
+		if userSessions, errUserSessions := l.appCtx.SessionUserModel().AddUser(session, entityIds, uIds, roles, noteNames, noteAvatars, 2); err != nil {
 			return nil, errUserSessions
 		} else {
 			userSession = userSessions[0]
@@ -126,14 +130,29 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 		}
 		members := make([]int64, 0)
 		entityIds := make([]int64, 0)
+		noteNames := make([]string, 0)
+		noteAvatars := make([]string, 0)
 		roles := make([]int, 0)
 		// 插入自己的角色和entity_id
 		members = append(members, req.UId)
+		noteNames = append(noteNames, req.UserNoteName)
+		noteAvatars = append(noteAvatars, req.UserNoteAvatar)
 		entityIds = append(entityIds, req.EntityId)
 		roles = append(roles, model.SessionOwner)
 		// 插入群成员的角色和entity_id
-		for _, m := range req.Members {
+		for i, m := range req.Members {
 			members = append(members, m)
+			if i < len(req.MemberNames) {
+				noteNames = append(noteNames, req.MemberNames[i])
+			} else {
+				noteNames = append(noteNames, "")
+			}
+			if i < len(req.MemberAvatars) {
+				noteAvatars = append(noteAvatars, req.MemberAvatars[i])
+			} else {
+				noteAvatars = append(noteAvatars, "")
+			}
+			noteAvatars = append(noteAvatars, req.UserNoteAvatar)
 			entityIds = append(entityIds, req.EntityId)
 			roles = append(roles, model.SessionMember)
 		}
@@ -141,7 +160,7 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 		if req.Type == model.SuperGroupSessionType {
 			maxMember = l.appCtx.Config().IM.MaxGroupMember
 		}
-		if userSessions, errUserSessions := l.appCtx.SessionUserModel().AddUser(session, entityIds, members, roles, maxMember); err != nil {
+		if userSessions, errUserSessions := l.appCtx.SessionUserModel().AddUser(session, entityIds, members, roles, noteNames, noteAvatars, maxMember); err != nil {
 			return nil, errUserSessions
 		} else {
 			userSession = userSessions[0]
@@ -301,19 +320,20 @@ func (l *SessionLogic) GetUserSessionByEntityId(req *dto.QueryUserSessionReq, cl
 
 func (l *SessionLogic) convUserSession(userSession *model.UserSession) *dto.UserSession {
 	return &dto.UserSession{
-		SId:      userSession.SessionId,
-		Type:     userSession.Type,
-		Name:     userSession.Name,
-		Remark:   userSession.Remark,
-		Role:     userSession.Role,
-		Mute:     userSession.Mute,
-		Top:      userSession.Top,
-		Status:   userSession.Status,
-		EntityId: userSession.EntityId,
-		ExtData:  userSession.ExtData,
-		NoteName: userSession.NoteName,
-		Deleted:  userSession.Deleted,
-		CTime:    userSession.CreateTime,
-		MTime:    userSession.UpdateTime,
+		SId:        userSession.SessionId,
+		Type:       userSession.Type,
+		Name:       userSession.Name,
+		Remark:     userSession.Remark,
+		Role:       userSession.Role,
+		Mute:       userSession.Mute,
+		Top:        userSession.Top,
+		Status:     userSession.Status,
+		EntityId:   userSession.EntityId,
+		ExtData:    userSession.ExtData,
+		NoteName:   userSession.NoteName,
+		NoteAvatar: userSession.NoteAvatar,
+		Deleted:    userSession.Deleted,
+		CTime:      userSession.CreateTime,
+		MTime:      userSession.UpdateTime,
 	}
 }

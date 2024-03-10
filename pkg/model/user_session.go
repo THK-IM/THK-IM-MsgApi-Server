@@ -36,6 +36,7 @@ type (
 		Mute       int     `gorm:"mute" json:"mute"`
 		Status     int     `gorm:"status" json:"status"`
 		NoteName   string  `gorm:"note_name" json:"note_name"`
+		NoteAvatar string  `gorm:"note_name" json:"note_avatar"`
 		CreateTime int64   `gorm:"create_time" json:"create_time"`
 		UpdateTime int64   `gorm:"update_time" json:"update_time"`
 		Deleted    int8    `gorm:"deleted" json:"deleted"`

@@ -55,7 +55,7 @@ func createSession(appCtx *app.Context) gin.HandlerFunc {
 			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("createSession %s", err.Error())
 			baseDto.ResponseInternalServerError(ctx, err)
 		} else {
-			appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("updateSession %v %v", req, resp)
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("createSession %v %v", req, resp)
 			baseDto.ResponseSuccess(ctx, resp)
 		}
 	}

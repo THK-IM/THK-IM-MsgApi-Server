@@ -134,15 +134,16 @@ func (l *SessionLogic) UpdateSessionUser(req dto.SessionUserUpdateReq, claims ba
 
 func (l *SessionLogic) convSessionUser(sessionUser *model.SessionUser) *dto.SessionUser {
 	return &dto.SessionUser{
-		SId:      sessionUser.SessionId,
-		UId:      sessionUser.UserId,
-		Type:     sessionUser.Type,
-		Role:     sessionUser.Role,
-		Mute:     sessionUser.Mute,
-		Status:   sessionUser.Status,
-		NoteName: sessionUser.NoteName,
-		Deleted:  sessionUser.Deleted,
-		CTime:    sessionUser.CreateTime,
-		MTime:    sessionUser.UpdateTime,
+		SId:        sessionUser.SessionId,
+		UId:        sessionUser.UserId,
+		Type:       sessionUser.Type,
+		Role:       sessionUser.Role,
+		Mute:       sessionUser.Mute,
+		Status:     sessionUser.Status,
+		NoteName:   sessionUser.NoteName,
+		NoteAvatar: sessionUser.NoteAvatar,
+		Deleted:    sessionUser.Deleted,
+		CTime:      sessionUser.CreateTime,
+		MTime:      sessionUser.UpdateTime,
 	}
 }

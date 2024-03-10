@@ -87,19 +87,21 @@ func (l *SessionLogic) CreateSession(req dto.CreateSessionReq, claims baseDto.Th
 				return nil, errorx.ErrSessionAlreadyDeleted
 			}
 			return &dto.CreateSessionRes{
-				SId:      userSession.SessionId,
-				EntityId: userSession.EntityId,
-				ParentId: userSession.ParentId,
-				Type:     userSession.Type,
-				Name:     userSession.Name,
-				Remark:   userSession.Remark,
-				Role:     userSession.Role,
-				Mute:     userSession.Mute,
-				CTime:    userSession.CreateTime,
-				MTime:    userSession.UpdateTime,
-				Status:   userSession.Status,
-				Top:      userSession.Top,
-				IsNew:    false,
+				SId:        userSession.SessionId,
+				EntityId:   userSession.EntityId,
+				ParentId:   userSession.ParentId,
+				Type:       userSession.Type,
+				Name:       userSession.Name,
+				NoteName:   userSession.NoteName,
+				NoteAvatar: userSession.NoteAvatar,
+				Remark:     userSession.Remark,
+				Role:       userSession.Role,
+				Mute:       userSession.Mute,
+				CTime:      userSession.CreateTime,
+				MTime:      userSession.UpdateTime,
+				Status:     userSession.Status,
+				Top:        userSession.Top,
+				IsNew:      false,
 			}, nil
 		}
 	}
@@ -168,19 +170,21 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 	}
 
 	res := &dto.CreateSessionRes{
-		SId:      userSession.SessionId,
-		EntityId: userSession.EntityId,
-		ParentId: userSession.ParentId,
-		Type:     userSession.Type,
-		Name:     userSession.Name,
-		Remark:   userSession.Remark,
-		Role:     userSession.Role,
-		Mute:     userSession.Mute,
-		Status:   userSession.Status,
-		Top:      userSession.Top,
-		CTime:    userSession.CreateTime,
-		MTime:    userSession.UpdateTime,
-		IsNew:    true,
+		SId:        userSession.SessionId,
+		EntityId:   userSession.EntityId,
+		ParentId:   userSession.ParentId,
+		Type:       userSession.Type,
+		Name:       userSession.Name,
+		NoteName:   userSession.NoteName,
+		NoteAvatar: userSession.NoteAvatar,
+		Remark:     userSession.Remark,
+		Role:       userSession.Role,
+		Mute:       userSession.Mute,
+		Status:     userSession.Status,
+		Top:        userSession.Top,
+		CTime:      userSession.CreateTime,
+		MTime:      userSession.UpdateTime,
+		IsNew:      true,
 	}
 	return res, nil
 }

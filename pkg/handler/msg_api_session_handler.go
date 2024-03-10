@@ -28,7 +28,7 @@ func createSession(appCtx *app.Context) gin.HandlerFunc {
 			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("createSession %d %d %v", req.Type, req.EntityId, req.Members)
 			baseDto.ResponseBadRequest(ctx)
 			return
-		} else if (req.Type == model.GroupSessionType || req.Type == model.SuperGroupSessionType) && req.EntityId == 0 {
+		} else if req.EntityId == 0 {
 			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("createSession %d %d", req.Type, req.EntityId)
 			baseDto.ResponseBadRequest(ctx)
 			return

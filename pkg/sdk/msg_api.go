@@ -39,6 +39,7 @@ type (
 	}
 
 	UserSessionApi interface {
+		DeleteUserSession(sessionId, userId int64, claims baseDto.ThkClaims) error
 		UpdateUserSession(req *dto.UpdateUserSessionReq, claims baseDto.ThkClaims) error
 		QueryUserSession(req *dto.QueryUserSessionReq, claims baseDto.ThkClaims) (*dto.UserSession, error)
 		QueryLatestUserSession(req *dto.QueryLatestUserSessionReq, claims baseDto.ThkClaims) (*dto.QueryLatestUserSessionsRes, error)

@@ -73,7 +73,7 @@ func (l *SessionLogic) CreateSession(req dto.CreateSessionReq, claims baseDto.Th
 				IsNew:    false,
 			}, nil
 		}
-	} else if req.Type == model.GroupSessionType || req.Type == model.SuperGroupSessionType {
+	} else {
 		userSession, err := l.appCtx.UserSessionModel().FindUserSessionByEntityId(req.UId, req.EntityId, req.Type, true)
 		if err != nil {
 			return nil, err
@@ -100,8 +100,6 @@ func (l *SessionLogic) CreateSession(req dto.CreateSessionReq, claims baseDto.Th
 				IsNew:    false,
 			}, nil
 		}
-	} else {
-		return nil, errorx.ErrSessionType
 	}
 	return l.createNewSession(req)
 }
@@ -121,7 +119,7 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 		} else {
 			userSession = userSessions[0]
 		}
-	} else if req.Type == model.GroupSessionType || req.Type == model.SuperGroupSessionType {
+	} else {
 		if req.EntityId <= 0 {
 			err = baseErrorx.ErrParamsError
 			return nil, err
@@ -139,8 +137,8 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 			entityIds = append(entityIds, req.EntityId)
 			roles = append(roles, model.SessionMember)
 		}
-		maxMember := l.appCtx.Config().IM.MaxSuperGroupMember
-		if req.Type == model.GroupSessionType {
+		maxMember := l.appCtx.Config().IM.MaxGroupMember
+		if req.Type == model.SuperGroupSessionType {
 			maxMember = l.appCtx.Config().IM.MaxGroupMember
 		}
 		if userSessions, errUserSessions := l.appCtx.SessionUserModel().AddUser(session, entityIds, members, roles, maxMember); err != nil {
@@ -148,9 +146,6 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 		} else {
 			userSession = userSessions[0]
 		}
-	} else {
-		err = baseErrorx.ErrParamsError
-		return nil, err
 	}
 
 	res := &dto.CreateSessionRes{

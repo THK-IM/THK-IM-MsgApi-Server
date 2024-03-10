@@ -11,6 +11,29 @@ import (
 
 const userSessionUrl = "user_session"
 
+func (d defaultMsgApi) DeleteUserSession(userId, sessionId int64, claims baseDto.ThkClaims) error {
+	url := fmt.Sprintf("%s%s/%d/%d", d.endpoint, userSessionUrl, userId, sessionId)
+	request := d.client.R()
+	for k, v := range claims {
+		vs := v.(string)
+		request.SetHeader(k, vs)
+	}
+	res, errRequest := request.
+		SetHeader("Content-Type", jsonContentType).
+		Delete(url)
+	if errRequest != nil {
+		return errRequest
+	}
+	if res.StatusCode() != http.StatusOK {
+		e := errorx.NewErrorXFromResp(res)
+		d.logger.Errorf("UpdateUserSession: %v", e)
+		return e
+	} else {
+		d.logger.Infof("UpdateUserSession: %v", "success")
+		return nil
+	}
+}
+
 func (d defaultMsgApi) UpdateUserSession(req *dto.UpdateUserSessionReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {

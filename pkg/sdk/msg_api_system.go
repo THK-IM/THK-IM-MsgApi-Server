@@ -3,6 +3,7 @@ package sdk
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
@@ -191,7 +192,7 @@ func (d defaultMsgApi) PushMessage(req *dto.PushMessageReq, claims baseDto.ThkCl
 func (d defaultMsgApi) SendSysMessage(req *dto.SendSysMessageReq, claims baseDto.ThkClaims) (*dto.SendSysMessageRes, error) {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
-		d.logger.Errorf("SendSystemMessage: %v %v", req, err)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("SendSystemMessage: %v %v", req, err)
 		return nil, err
 	}
 	url := fmt.Sprintf("%s%s%s", d.endpoint, systemUrl, "/system_message")
@@ -205,21 +206,21 @@ func (d defaultMsgApi) SendSysMessage(req *dto.SendSysMessageReq, claims baseDto
 		SetBody(dataBytes).
 		Post(url)
 	if errRequest != nil {
-		d.logger.Errorf("SendSystemMessage: %v %v", req, errRequest)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("SendSystemMessage: %v %v", req, errRequest)
 		return nil, errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("SendSystemMessage: %v %v", req, e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("SendSystemMessage: %v %v", req, e)
 		return nil, e
 	} else {
 		resp := &dto.SendSysMessageRes{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {
-			d.logger.Errorf("SendSystemMessage: %v %v", req, e)
+			d.logger.WithFields(logrus.Fields(claims)).Errorf("SendSystemMessage: %v %v", req, e)
 			return nil, e
 		} else {
-			d.logger.Infof("SendSystemMessage: %v %v", req, resp)
+			d.logger.WithFields(logrus.Fields(claims)).Infof("SendSystemMessage: %v %v", req, resp)
 			return resp, nil
 		}
 	}
@@ -228,7 +229,7 @@ func (d defaultMsgApi) SendSysMessage(req *dto.SendSysMessageReq, claims baseDto
 func (d defaultMsgApi) SendSessionMessage(req *dto.SendMessageReq, claims baseDto.ThkClaims) (*dto.SendMessageRes, error) {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
-		d.logger.Errorf("SendSessionMessage: %v %v", req, err)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("SendSessionMessage: %v %v", req, err)
 		return nil, err
 	}
 	url := fmt.Sprintf("%s%s%s", d.endpoint, systemUrl, "/session_message")
@@ -242,21 +243,21 @@ func (d defaultMsgApi) SendSessionMessage(req *dto.SendMessageReq, claims baseDt
 		SetBody(dataBytes).
 		Post(url)
 	if errRequest != nil {
-		d.logger.Errorf("SendSessionMessage: %v %v", req, errRequest)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("SendSessionMessage: %v %v", req, errRequest)
 		return nil, errRequest
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("SendSessionMessage: %v %v", req, e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("SendSessionMessage: %v %v", req, e)
 		return nil, e
 	} else {
 		resp := &dto.SendMessageRes{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {
-			d.logger.Errorf("SendSessionMessage: %v %v", req, e)
+			d.logger.WithFields(logrus.Fields(claims)).Errorf("SendSessionMessage: %v %v", req, e)
 			return nil, e
 		} else {
-			d.logger.Infof("SendSessionMessage: %v %v", req, resp)
+			d.logger.WithFields(logrus.Fields(claims)).Infof("SendSessionMessage: %v %v", req, resp)
 			return resp, nil
 		}
 	}
@@ -265,7 +266,7 @@ func (d defaultMsgApi) SendSessionMessage(req *dto.SendMessageReq, claims baseDt
 func (d defaultMsgApi) KickOffUser(req *dto.KickUserReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
-		d.logger.Errorf("KickOffUser: %v %v", req, err)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("KickOffUser: %v %v", req, err)
 		return err
 	}
 	url := fmt.Sprintf("%s%s%s", d.endpoint, systemUrl, "/user/kickoff")
@@ -283,10 +284,10 @@ func (d defaultMsgApi) KickOffUser(req *dto.KickUserReq, claims baseDto.ThkClaim
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("KickOffUser: %v %v", req, e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("KickOffUser: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Infof("KickOffUser: %v %s", req, "success")
+		d.logger.WithFields(logrus.Fields(claims)).Infof("KickOffUser: %v %s", req, "success")
 		return nil
 	}
 }
@@ -311,16 +312,16 @@ func (d defaultMsgApi) QueryUsersOnlineStatus(req *dto.QueryUsersOnlineStatusReq
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("QueryUsersOnlineStatus: %v %v", req, e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("QueryUsersOnlineStatus: %v %v", req, e)
 		return nil, e
 	} else {
 		resp := &dto.QueryUsersOnlineStatusRes{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {
-			d.logger.Errorf("QueryUsersOnlineStatus: %v %v", req, e)
+			d.logger.WithFields(logrus.Fields(claims)).Errorf("QueryUsersOnlineStatus: %v %v", req, e)
 			return nil, e
 		} else {
-			d.logger.Infof("QueryUsersOnlineStatus: %v %v", req, resp)
+			d.logger.WithFields(logrus.Fields(claims)).Infof("QueryUsersOnlineStatus: %v %v", req, resp)
 			return resp, nil
 		}
 	}
@@ -329,7 +330,7 @@ func (d defaultMsgApi) QueryUsersOnlineStatus(req *dto.QueryUsersOnlineStatusReq
 func (d defaultMsgApi) PostUserOnlineStatus(req *dto.PostUserOnlineReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
-		d.logger.Errorf("PostUserOnlineStatus: %v %v", req, err)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("PostUserOnlineStatus: %v %v", req, err)
 		return err
 	}
 	url := fmt.Sprintf("%s%s%s", d.endpoint, systemUrl, "/user/online")
@@ -347,10 +348,10 @@ func (d defaultMsgApi) PostUserOnlineStatus(req *dto.PostUserOnlineReq, claims b
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("PostUserOnlineStatus: %v %v", req, e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("PostUserOnlineStatus: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Infof("PostUserOnlineStatus: %v %s", req, "success")
+		d.logger.WithFields(logrus.Fields(claims)).Infof("PostUserOnlineStatus: %v %s", req, "success")
 		return nil
 	}
 }

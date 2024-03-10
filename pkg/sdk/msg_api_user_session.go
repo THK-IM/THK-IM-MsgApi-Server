@@ -3,6 +3,7 @@ package sdk
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
@@ -26,10 +27,10 @@ func (d defaultMsgApi) DeleteUserSession(userId, sessionId int64, claims baseDto
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("UpdateUserSession: %v", e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("DeleteUserSession: %v", e)
 		return e
 	} else {
-		d.logger.Infof("UpdateUserSession: %v", "success")
+		d.logger.WithFields(logrus.Fields(claims)).Infof("DeleteUserSession: %v", "success")
 		return nil
 	}
 }
@@ -55,10 +56,10 @@ func (d defaultMsgApi) UpdateUserSession(req *dto.UpdateUserSessionReq, claims b
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("UpdateUserSession: %v %v", req, e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("UpdateUserSession: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Infof("UpdateUserSession: %v %s", req, "success")
+		d.logger.WithFields(logrus.Fields(claims)).Infof("UpdateUserSession: %v %s", req, "success")
 		return nil
 	}
 }
@@ -78,16 +79,16 @@ func (d defaultMsgApi) QueryUserSession(req *dto.QueryUserSessionReq, claims bas
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("QueryUserSession: %v %v", req, e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("QueryUserSession: %v %v", req, e)
 		return nil, e
 	} else {
 		resp := &dto.UserSession{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {
-			d.logger.Errorf("QueryUserSession: %v %s", req, e)
+			d.logger.WithFields(logrus.Fields(claims)).Errorf("QueryUserSession: %v %s", req, e)
 			return nil, e
 		} else {
-			d.logger.Infof("QueryUserSession: %v %v", req, resp)
+			d.logger.WithFields(logrus.Fields(claims)).Infof("QueryUserSession: %v %v", req, resp)
 			return resp, nil
 		}
 	}
@@ -111,16 +112,16 @@ func (d defaultMsgApi) QueryLatestUserSession(req *dto.QueryLatestUserSessionReq
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("QueryLatestUserSession: %v %v", req, e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("QueryLatestUserSession: %v %v", req, e)
 		return nil, e
 	} else {
 		resp := &dto.QueryLatestUserSessionsRes{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {
-			d.logger.Errorf("QueryLatestUserSession: %v %s", req, e)
+			d.logger.WithFields(logrus.Fields(claims)).Errorf("QueryLatestUserSession: %v %s", req, e)
 			return nil, e
 		} else {
-			d.logger.Infof("QueryLatestUserSession: %v %v", req, resp)
+			d.logger.WithFields(logrus.Fields(claims)).Infof("QueryLatestUserSession: %v %v", req, resp)
 			return resp, nil
 		}
 	}

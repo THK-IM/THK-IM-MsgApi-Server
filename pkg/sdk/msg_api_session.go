@@ -3,6 +3,7 @@ package sdk
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
@@ -16,7 +17,7 @@ const (
 func (d defaultMsgApi) DelSessionUser(sessionId int64, req *dto.SessionDelUserReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
-		d.logger.Errorf("DelSessionUser: %v %v", req, err)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("DelSessionUser: %v %v", req, err)
 		return err
 	}
 	url := fmt.Sprintf("%s%s/%d/user", d.endpoint, sessionUrl, sessionId)
@@ -34,10 +35,10 @@ func (d defaultMsgApi) DelSessionUser(sessionId int64, req *dto.SessionDelUserRe
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("DelSessionUser: %v %v", req, e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("DelSessionUser: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Infof("DelSessionUser: %v %s", req, "success")
+		d.logger.WithFields(logrus.Fields(claims)).Infof("DelSessionUser: %v %s", req, "success")
 		return nil
 	}
 }
@@ -45,7 +46,7 @@ func (d defaultMsgApi) DelSessionUser(sessionId int64, req *dto.SessionDelUserRe
 func (d defaultMsgApi) AddSessionUser(sessionId int64, req *dto.SessionAddUserReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
-		d.logger.Errorf("AddSessionUser: %v %v", req, err)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("AddSessionUser: %v %v", req, err)
 		return err
 	}
 	url := fmt.Sprintf("%s%s/%d/user", d.endpoint, sessionUrl, sessionId)
@@ -63,10 +64,10 @@ func (d defaultMsgApi) AddSessionUser(sessionId int64, req *dto.SessionAddUserRe
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("AddSessionUser: %v %v", req, e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("AddSessionUser: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Infof("AddSessionUser: %v %s", req, "success")
+		d.logger.WithFields(logrus.Fields(claims)).Infof("AddSessionUser: %v %s", req, "success")
 		return nil
 	}
 }
@@ -74,7 +75,7 @@ func (d defaultMsgApi) AddSessionUser(sessionId int64, req *dto.SessionAddUserRe
 func (d defaultMsgApi) DelSession(sessionId int64, req *dto.DelSessionReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
-		d.logger.Errorf("DelSession: %v %v", req, err)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("DelSession: %v %v", req, err)
 		return err
 	}
 	url := fmt.Sprintf("%s%s/%d", d.endpoint, sessionUrl, sessionId)
@@ -92,10 +93,10 @@ func (d defaultMsgApi) DelSession(sessionId int64, req *dto.DelSessionReq, claim
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("DelSession: %v %v", req, e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("DelSession: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Infof("DelSession: %v %s", req, "success")
+		d.logger.WithFields(logrus.Fields(claims)).Infof("DelSession: %v %s", req, "success")
 		return nil
 	}
 }
@@ -103,7 +104,7 @@ func (d defaultMsgApi) DelSession(sessionId int64, req *dto.DelSessionReq, claim
 func (d defaultMsgApi) UpdateSession(sessionId int64, req *dto.UpdateSessionReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
-		d.logger.Errorf("UpdateSession: %v %v", req, err)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("UpdateSession: %v %v", req, err)
 		return err
 	}
 	url := fmt.Sprintf("%s%s/%d", d.endpoint, sessionUrl, sessionId)
@@ -121,10 +122,10 @@ func (d defaultMsgApi) UpdateSession(sessionId int64, req *dto.UpdateSessionReq,
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("UpdateSession: %v %v", req, e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("UpdateSession: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Infof("UpdateSession: %v %s", req, "success")
+		d.logger.WithFields(logrus.Fields(claims)).Infof("UpdateSession: %v %s", req, "success")
 		return nil
 	}
 }
@@ -147,20 +148,20 @@ func (d defaultMsgApi) QueryLatestSessionUsers(sessionId int64, req *dto.QuerySe
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("QueryLatestSessionUsers: %v %v", req, e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("QueryLatestSessionUsers: %v %v", req, e)
 		return nil, e
 	} else {
 		if res.Body() == nil || len(res.Body()) == 0 {
-			d.logger.Info("QueryLatestSessionUsers: %v %s", req, "Body is nil")
+			d.logger.WithFields(logrus.Fields(claims)).Info("QueryLatestSessionUsers: %v %s", req, "Body is nil")
 			return nil, nil
 		}
 		resp := &dto.QuerySessionUsersRes{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {
-			d.logger.Errorf("QueryLatestSessionUsers: %v %v", req, e)
+			d.logger.WithFields(logrus.Fields(claims)).Errorf("QueryLatestSessionUsers: %v %v", req, e)
 			return nil, e
 		} else {
-			d.logger.Infof("QueryLatestSessionUsers: %v %v", req, resp)
+			d.logger.WithFields(logrus.Fields(claims)).Infof("QueryLatestSessionUsers: %v %v", req, resp)
 			return resp, nil
 		}
 	}
@@ -182,16 +183,16 @@ func (d defaultMsgApi) QuerySessionUser(sessionId, userId int64, claims baseDto.
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("QueryLatestSessionUsers: %d %d %v", sessionId, userId, e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("QueryLatestSessionUsers: %d %d %v", sessionId, userId, e)
 		return nil, e
 	} else {
 		resp := &dto.SessionUser{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {
-			d.logger.Errorf("QueryLatestSessionUsers: %d %d %v", sessionId, userId, e)
+			d.logger.WithFields(logrus.Fields(claims)).Errorf("QueryLatestSessionUsers: %d %d %v", sessionId, userId, e)
 			return nil, e
 		} else {
-			d.logger.Infof("QueryLatestSessionUsers: %d %d %v", sessionId, userId, resp)
+			d.logger.WithFields(logrus.Fields(claims)).Infof("QueryLatestSessionUsers: %d %d %v", sessionId, userId, resp)
 			return resp, nil
 		}
 	}
@@ -200,7 +201,7 @@ func (d defaultMsgApi) QuerySessionUser(sessionId, userId int64, claims baseDto.
 func (d defaultMsgApi) UpdateSessionUser(sessionId int64, req *dto.SessionUserUpdateReq, claims baseDto.ThkClaims) error {
 	dataBytes, err := json.Marshal(req)
 	if err != nil {
-		d.logger.Errorf("UpdateSessionUser: %v %v", req, err)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("UpdateSessionUser: %v %v", req, err)
 		return err
 	}
 	url := fmt.Sprintf("%s%s/%d/user", d.endpoint, sessionUrl, sessionId)
@@ -218,10 +219,10 @@ func (d defaultMsgApi) UpdateSessionUser(sessionId int64, req *dto.SessionUserUp
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.Errorf("UpdateSessionUser: %v %v", req, e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("UpdateSessionUser: %v %v", req, e)
 		return e
 	} else {
-		d.logger.Infof("UpdateSessionUser: %v %s", req, "success")
+		d.logger.WithFields(logrus.Fields(claims)).Infof("UpdateSessionUser: %v %s", req, "success")
 		return nil
 	}
 }

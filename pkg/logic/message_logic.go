@@ -155,7 +155,7 @@ func (l *MessageLogic) SendSessionMessage(session *model.Session, req dto.SendMe
 		// 插入数据库发送消息
 		msgId := int64(l.appCtx.SnowflakeNode().Generate())
 		sessionMessage, errMessage = l.appCtx.SessionMessageModel().InsertMessage(
-			req.CId, req.FUid, req.SId, msgId, req.Body, req.ExtData, req.Type, req.AtUsers, req.RMsgId)
+			req.CId, req.FUid, req.SId, msgId, req.Body, req.ExtData, req.Type, req.AtUsers, req.RMsgId, req.CTime)
 		if errMessage != nil {
 			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("SendMessage InsertMessage %v, %v", errMessage, req)
 			return nil, errMessage
@@ -199,7 +199,7 @@ func (l *MessageLogic) SendUserMessage(session *model.Session, req dto.SendMessa
 			AtUsers:    req.AtUsers,
 			ExtData:    req.ExtData,
 			Status:     model.MsgStatusAcked | model.MsgStatusRead,
-			CreateTime: now,
+			CreateTime: req.CTime,
 			UpdateTime: now,
 		}
 		errMessage = l.appCtx.UserMessageModel().InsertUserMessage(userMessage)

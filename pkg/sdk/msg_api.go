@@ -45,6 +45,10 @@ type (
 		QueryLatestUserSession(req *dto.QueryLatestUserSessionReq, claims baseDto.ThkClaims) (*dto.QueryLatestUserSessionsRes, error)
 	}
 
+	UserMessageApi interface {
+		ReadUserMessage(req *dto.ReadUserMessageReq, claims baseDto.ThkClaims) error
+	}
+
 	MsgApi interface {
 		SystemApi
 		SessionApi

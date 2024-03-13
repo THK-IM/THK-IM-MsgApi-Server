@@ -44,7 +44,7 @@ type (
 		FindSessionMessage(sessionId, msgId, fUid int64) (*SessionMessage, error)
 		DelMessages(sessionId int64, messageIds []int64, from, to int64) error
 		InsertMessage(clientId int64, fromUserId int64, sessionId int64, msgId int64, msgContent string, extData *string,
-			msgType int, atUserIds *string, replayMsgId *int64) (*SessionMessage, error)
+			msgType int, atUserIds *string, replayMsgId *int64, creatTime int64) (*SessionMessage, error)
 		FindMessageByClientId(sessionId, clientId, fromUId int64) (*SessionMessage, error)
 		GetSessionMessages(sessionId, ctime int64, offset, count int, msgIds []int64, asc int8) ([]*SessionMessage, error)
 	}
@@ -93,7 +93,7 @@ func (d defaultSessionMessageModel) DelMessages(sessionId int64, messageIds []in
 }
 
 func (d defaultSessionMessageModel) InsertMessage(clientId int64, fromUserId int64, sessionId int64, msgId int64,
-	msgContent string, extData *string, msgType int, atUserIds *string, replayMsgId *int64) (*SessionMessage, error) {
+	msgContent string, extData *string, msgType int, atUserIds *string, replayMsgId *int64, creatTime int64) (*SessionMessage, error) {
 	currTime := time.Now().UnixMilli()
 	sessionMessage := &SessionMessage{
 		MsgId:      msgId,
@@ -105,7 +105,7 @@ func (d defaultSessionMessageModel) InsertMessage(clientId int64, fromUserId int
 		ExtData:    extData,
 		MsgContent: msgContent,
 		ReplyMsgId: replayMsgId,
-		CreateTime: currTime,
+		CreateTime: creatTime,
 		UpdateTime: currTime,
 		Deleted:    0,
 	}

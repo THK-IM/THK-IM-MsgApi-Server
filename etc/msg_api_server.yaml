@@ -5,7 +5,7 @@ Mode: debug
 # exposed外网暴露模式，校验用户token
 # backend后端模式，校验ip
 DeployMode: "exposed"
-IpWhiteList: 192.168.31.1/24, 192.168.1.1/24
+IpWhiteList: 192.168.31.1/24, 192.168.1.1/24, 127.0.0.1/24
 IM:
   OnlineTimeout: 20
   MaxGroupMember: 100

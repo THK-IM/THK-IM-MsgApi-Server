@@ -53,6 +53,7 @@ type (
 		SystemApi
 		SessionApi
 		UserSessionApi
+		UserMessageApi
 	}
 
 	defaultMsgApi struct {

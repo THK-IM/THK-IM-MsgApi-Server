@@ -111,7 +111,7 @@ func (l *SessionLogic) CreateSession(req dto.CreateSessionReq, claims baseDto.Th
 }
 
 func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSessionRes, error) {
-	session, err := l.appCtx.SessionModel().CreateEmptySession(req.Type, req.ExtData, req.Name, req.Remark, req.Function)
+	session, err := l.appCtx.SessionModel().CreateEmptySession(req.Type, req.ExtData, req.Name, req.Remark, req.FunctionFlag)
 	if err != nil {
 		return nil, err
 	}

@@ -22,31 +22,31 @@ const (
 
 type (
 	UserSession struct {
-		Id         int64   `gorm:"id" json:"id"`
-		SessionId  int64   `gorm:"session_id" json:"session_id"`
-		UserId     int64   `gorm:"user_id" json:"user_id"`
-		ParentId   int64   `gorm:"parent_id" json:"parent_id"`
-		Type       int     `gorm:"type" json:"type"`
-		EntityId   int64   `gorm:"entity_id" json:"entity_id"`
-		Name       string  `gorm:"name" json:"name"`
-		Remark     string  `gorm:"remark" json:"remark"`
-		Function   int64   `gorm:"function" json:"function"`
-		ExtData    *string `json:"ext_data" json:"ext_data"`
-		Top        int64   `gorm:"top" json:"top"`
-		Role       int     `gorm:"role" json:"role"`
-		Mute       int     `gorm:"mute" json:"mute"`
-		Status     int     `gorm:"status" json:"status"`
-		NoteName   string  `gorm:"note_name" json:"note_name"`
-		NoteAvatar string  `gorm:"note_name" json:"note_avatar"`
-		CreateTime int64   `gorm:"create_time" json:"create_time"`
-		UpdateTime int64   `gorm:"update_time" json:"update_time"`
-		Deleted    int8    `gorm:"deleted" json:"deleted"`
+		Id           int64   `gorm:"id" json:"id"`
+		SessionId    int64   `gorm:"session_id" json:"session_id"`
+		UserId       int64   `gorm:"user_id" json:"user_id"`
+		ParentId     int64   `gorm:"parent_id" json:"parent_id"`
+		Type         int     `gorm:"type" json:"type"`
+		EntityId     int64   `gorm:"entity_id" json:"entity_id"`
+		Name         string  `gorm:"name" json:"name"`
+		Remark       string  `gorm:"remark" json:"remark"`
+		FunctionFlag int64   `gorm:"function_flag" json:"function_flag"`
+		ExtData      *string `json:"ext_data" json:"ext_data"`
+		Top          int64   `gorm:"top" json:"top"`
+		Role         int     `gorm:"role" json:"role"`
+		Mute         int     `gorm:"mute" json:"mute"`
+		Status       int     `gorm:"status" json:"status"`
+		NoteName     string  `gorm:"note_name" json:"note_name"`
+		NoteAvatar   string  `gorm:"note_name" json:"note_avatar"`
+		CreateTime   int64   `gorm:"create_time" json:"create_time"`
+		UpdateTime   int64   `gorm:"update_time" json:"update_time"`
+		Deleted      int8    `gorm:"deleted" json:"deleted"`
 	}
 
 	UserSessionModel interface {
 		FindUserSessionByEntityId(userId, entityId int64, sessionType int, containDeleted bool) (*UserSession, error)
 		UpdateUserSessionType(userIds []int64, sessionId int64, sessionType int) error
-		UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute, extData, noteName *string, top *int64, status, role *int, parentId, function *int64) error
+		UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute, extData, noteName *string, top *int64, status, role *int, parentId, functionFlag *int64) error
 		FindEntityIdsInUserSession(userId, sessionId int64) []int64
 		QueryLatestUserSessions(userId, mTime int64, offset, count int, types []int) ([]*UserSession, error)
 		GetUserSession(userId, sessionId int64) (*UserSession, error)
@@ -103,10 +103,10 @@ func (d defaultUserSessionModel) UpdateUserSessionType(userIds []int64, sessionI
 }
 
 func (d defaultUserSessionModel) UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute,
-	extData, noteName *string, top *int64, status, role *int, parentId, function *int64,
+	extData, noteName *string, top *int64, status, role *int, parentId, functionFlag *int64,
 ) (err error) {
 	if sessionName == nil && sessionRemark == nil && top == nil && status == nil &&
-		mute == nil && role == nil && parentId == nil && function == nil {
+		mute == nil && role == nil && parentId == nil && functionFlag == nil {
 		return
 	}
 	// 分表uid数组
@@ -158,8 +158,8 @@ func (d defaultUserSessionModel) UpdateUserSession(userIds []int64, sessionId in
 		if parentId != nil {
 			sqlBuffer.WriteString(fmt.Sprintf("parent_id = %d, ", *parentId))
 		}
-		if function != nil {
-			sqlBuffer.WriteString(fmt.Sprintf("function = %d, ", *function))
+		if functionFlag != nil {
+			sqlBuffer.WriteString(fmt.Sprintf("function_flag = %d, ", *functionFlag))
 		}
 		sqlBuffer.WriteString(fmt.Sprintf("update_time = %d ", time.Now().UnixMilli()))
 		sqlBuffer.WriteString("where session_id = ? and user_id in ? ")

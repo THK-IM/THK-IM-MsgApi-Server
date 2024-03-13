@@ -16,23 +16,23 @@ const (
 
 type (
 	Session struct {
-		Id         int64   `gorm:"id" json:"id"`
-		Name       string  `gorm:"name" json:"name"`
-		Remark     string  `gorm:"remark" json:"remark"`
-		Function   int64   `gorm:"function" json:"function"`
-		Type       int     `gorm:"type" json:"type"`
-		Mute       int8    `gorm:"mute" json:"mute"`
-		ExtData    *string `json:"ext_data" json:"ext_data"`
-		CreateTime int64   `gorm:"create_time" json:"create_time"`
-		UpdateTime int64   `gorm:"update_time" json:"update_time"`
-		Deleted    int8    `gorm:"deleted" json:"deleted"`
+		Id           int64   `gorm:"id" json:"id"`
+		Name         string  `gorm:"name" json:"name"`
+		Remark       string  `gorm:"remark" json:"remark"`
+		FunctionFlag int64   `gorm:"function_flag" json:"function_flag"`
+		Type         int     `gorm:"type" json:"type"`
+		Mute         int8    `gorm:"mute" json:"mute"`
+		ExtData      *string `json:"ext_data" json:"ext_data"`
+		CreateTime   int64   `gorm:"create_time" json:"create_time"`
+		UpdateTime   int64   `gorm:"update_time" json:"update_time"`
+		Deleted      int8    `gorm:"deleted" json:"deleted"`
 	}
 
 	SessionModel interface {
 		UpdateSessionType(sessionId int64, sessionType int) error
-		UpdateSession(sessionId int64, name, remark *string, mute *int, extData *string, function *int64) error
+		UpdateSession(sessionId int64, name, remark *string, mute *int, extData *string, functionFlag *int64) error
 		FindSession(sessionId int64) (*Session, error)
-		CreateEmptySession(sessionType int, extData *string, name string, remark string, function int64) (*Session, error)
+		CreateEmptySession(sessionType int, extData *string, name string, remark string, functionFlag int64) (*Session, error)
 	}
 
 	defaultSessionModel struct {
@@ -81,18 +81,18 @@ func (d defaultSessionModel) FindSession(sessionId int64) (*Session, error) {
 	return session, err
 }
 
-func (d defaultSessionModel) CreateEmptySession(sessionType int, extData *string, name string, remark string, function int64) (*Session, error) {
+func (d defaultSessionModel) CreateEmptySession(sessionType int, extData *string, name string, remark string, functionFlag int64) (*Session, error) {
 	sessionId := int64(d.snowflakeNode.Generate())
 	currTime := time.Now().UnixMilli()
 	session := Session{
-		Id:         sessionId,
-		Type:       sessionType,
-		Name:       name,
-		Remark:     remark,
-		Function:   function,
-		ExtData:    extData,
-		CreateTime: currTime,
-		UpdateTime: currTime,
+		Id:           sessionId,
+		Type:         sessionType,
+		Name:         name,
+		Remark:       remark,
+		FunctionFlag: functionFlag,
+		ExtData:      extData,
+		CreateTime:   currTime,
+		UpdateTime:   currTime,
 	}
 	err := d.db.Table(d.genSessionTableName(sessionId)).Create(&session).Error
 	if err != nil {

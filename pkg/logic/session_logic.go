@@ -60,20 +60,20 @@ func (l *SessionLogic) CreateSession(req dto.CreateSessionReq, claims baseDto.Th
 				userSession = userSessions[0]
 			}
 			return &dto.CreateSessionRes{
-				SId:      userSession.SessionId,
-				EntityId: userSession.EntityId,
-				ParentId: userSession.ParentId,
-				Type:     userSession.Type,
-				Name:     userSession.Name,
-				Remark:   userSession.Remark,
-				Function: userSession.Function,
-				Role:     userSession.Role,
-				Mute:     userSession.Mute,
-				CTime:    userSession.CreateTime,
-				MTime:    userSession.UpdateTime,
-				Status:   userSession.Status,
-				Top:      userSession.Top,
-				IsNew:    false,
+				SId:          userSession.SessionId,
+				EntityId:     userSession.EntityId,
+				ParentId:     userSession.ParentId,
+				Type:         userSession.Type,
+				Name:         userSession.Name,
+				Remark:       userSession.Remark,
+				FunctionFlag: userSession.FunctionFlag,
+				Role:         userSession.Role,
+				Mute:         userSession.Mute,
+				CTime:        userSession.CreateTime,
+				MTime:        userSession.UpdateTime,
+				Status:       userSession.Status,
+				Top:          userSession.Top,
+				IsNew:        false,
 			}, nil
 		}
 	} else {
@@ -88,22 +88,22 @@ func (l *SessionLogic) CreateSession(req dto.CreateSessionReq, claims baseDto.Th
 				return nil, errorx.ErrSessionAlreadyDeleted
 			}
 			return &dto.CreateSessionRes{
-				SId:        userSession.SessionId,
-				EntityId:   userSession.EntityId,
-				ParentId:   userSession.ParentId,
-				Type:       userSession.Type,
-				Name:       userSession.Name,
-				NoteName:   userSession.NoteName,
-				NoteAvatar: userSession.NoteAvatar,
-				Remark:     userSession.Remark,
-				Function:   userSession.Function,
-				Role:       userSession.Role,
-				Mute:       userSession.Mute,
-				CTime:      userSession.CreateTime,
-				MTime:      userSession.UpdateTime,
-				Status:     userSession.Status,
-				Top:        userSession.Top,
-				IsNew:      false,
+				SId:          userSession.SessionId,
+				EntityId:     userSession.EntityId,
+				ParentId:     userSession.ParentId,
+				Type:         userSession.Type,
+				Name:         userSession.Name,
+				NoteName:     userSession.NoteName,
+				NoteAvatar:   userSession.NoteAvatar,
+				Remark:       userSession.Remark,
+				FunctionFlag: userSession.FunctionFlag,
+				Role:         userSession.Role,
+				Mute:         userSession.Mute,
+				CTime:        userSession.CreateTime,
+				MTime:        userSession.UpdateTime,
+				Status:       userSession.Status,
+				Top:          userSession.Top,
+				IsNew:        false,
 			}, nil
 		}
 	}
@@ -164,7 +164,7 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 		if req.Type == model.SuperGroupSessionType {
 			maxMember = l.appCtx.Config().IM.MaxGroupMember
 		}
-		if userSessions, errUserSessions := l.appCtx.SessionUserModel().AddUser(session, entityIds, members, roles, noteNames, noteAvatars, maxMember); err != nil {
+		if userSessions, errUserSessions := l.appCtx.SessionUserModel().AddUser(session, entityIds, members, roles, noteNames, noteAvatars, maxMember); errUserSessions != nil {
 			return nil, errUserSessions
 		} else {
 			userSession = userSessions[0]
@@ -172,22 +172,22 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 	}
 
 	res := &dto.CreateSessionRes{
-		SId:        userSession.SessionId,
-		EntityId:   userSession.EntityId,
-		ParentId:   userSession.ParentId,
-		Type:       userSession.Type,
-		Name:       userSession.Name,
-		NoteName:   userSession.NoteName,
-		NoteAvatar: userSession.NoteAvatar,
-		Remark:     userSession.Remark,
-		Function:   userSession.Function,
-		Role:       userSession.Role,
-		Mute:       userSession.Mute,
-		Status:     userSession.Status,
-		Top:        userSession.Top,
-		CTime:      userSession.CreateTime,
-		MTime:      userSession.UpdateTime,
-		IsNew:      true,
+		SId:          userSession.SessionId,
+		EntityId:     userSession.EntityId,
+		ParentId:     userSession.ParentId,
+		Type:         userSession.Type,
+		Name:         userSession.Name,
+		NoteName:     userSession.NoteName,
+		NoteAvatar:   userSession.NoteAvatar,
+		Remark:       userSession.Remark,
+		FunctionFlag: userSession.FunctionFlag,
+		Role:         userSession.Role,
+		Mute:         userSession.Mute,
+		Status:       userSession.Status,
+		Top:          userSession.Top,
+		CTime:        userSession.CreateTime,
+		MTime:        userSession.UpdateTime,
+		IsNew:        true,
 	}
 	return res, nil
 }
@@ -327,20 +327,21 @@ func (l *SessionLogic) GetUserSessionByEntityId(req *dto.QueryUserSessionReq, cl
 
 func (l *SessionLogic) convUserSession(userSession *model.UserSession) *dto.UserSession {
 	return &dto.UserSession{
-		SId:        userSession.SessionId,
-		Type:       userSession.Type,
-		Name:       userSession.Name,
-		Remark:     userSession.Remark,
-		Role:       userSession.Role,
-		Mute:       userSession.Mute,
-		Top:        userSession.Top,
-		Status:     userSession.Status,
-		EntityId:   userSession.EntityId,
-		ExtData:    userSession.ExtData,
-		NoteName:   userSession.NoteName,
-		NoteAvatar: userSession.NoteAvatar,
-		Deleted:    userSession.Deleted,
-		CTime:      userSession.CreateTime,
-		MTime:      userSession.UpdateTime,
+		SId:          userSession.SessionId,
+		Type:         userSession.Type,
+		Name:         userSession.Name,
+		Remark:       userSession.Remark,
+		FunctionFlag: userSession.FunctionFlag,
+		Role:         userSession.Role,
+		Mute:         userSession.Mute,
+		Top:          userSession.Top,
+		Status:       userSession.Status,
+		EntityId:     userSession.EntityId,
+		ExtData:      userSession.ExtData,
+		NoteName:     userSession.NoteName,
+		NoteAvatar:   userSession.NoteAvatar,
+		Deleted:      userSession.Deleted,
+		CTime:        userSession.CreateTime,
+		MTime:        userSession.UpdateTime,
 	}
 }

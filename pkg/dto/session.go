@@ -26,23 +26,23 @@ type CreateSessionReq struct {
 }
 
 type CreateSessionRes struct {
-	SId        int64   `json:"s_id"`
-	ParentId   int64   `json:"parent_id"`
-	EntityId   int64   `json:"entity_id"`
-	Type       int     `json:"type"`
-	Name       string  `json:"name"`
-	Remark     string  `json:"remark"`
-	Function   int64   `json:"function"`
-	ExtData    *string `json:"ext_data"`
-	NoteName   string  `json:"note_name"`
-	NoteAvatar string  `json:"note_avatar"`
-	Mute       int     `json:"mute"`
-	Role       int     `json:"role"`
-	CTime      int64   `json:"c_time"`
-	MTime      int64   `json:"m_time"`
-	Top        int64   `json:"top"`
-	Status     int     `json:"status"`
-	IsNew      bool    `json:"is_new"` // 如果之前已经创建，false
+	SId          int64   `json:"s_id"`
+	ParentId     int64   `json:"parent_id"`
+	EntityId     int64   `json:"entity_id"`
+	Type         int     `json:"type"`
+	Name         string  `json:"name"`
+	Remark       string  `json:"remark"`
+	FunctionFlag int64   `json:"function_flag"`
+	ExtData      *string `json:"ext_data"`
+	NoteName     string  `json:"note_name"`
+	NoteAvatar   string  `json:"note_avatar"`
+	Mute         int     `json:"mute"`
+	Role         int     `json:"role"`
+	CTime        int64   `json:"c_time"`
+	MTime        int64   `json:"m_time"`
+	Top          int64   `json:"top"`
+	Status       int     `json:"status"`
+	IsNew        bool    `json:"is_new"` // 如果之前已经创建，false
 }
 
 type UpdateSessionReq struct {
@@ -88,22 +88,22 @@ type QueryUserSessionReq struct {
 }
 
 type UserSession struct {
-	SId        int64   `json:"s_id"`
-	Name       string  `json:"name"`
-	Remark     string  `json:"remark"`
-	Function   int64   `json:"function"`
-	Type       int     `json:"type"`
-	Status     int     `json:"status"`
-	Role       int     `json:"role"`
-	Mute       int     `json:"mute"`
-	Top        int64   `json:"top"`
-	NoteName   string  `json:"note_name"`
-	NoteAvatar string  `json:"note_avatar"`
-	Deleted    int8    `json:"deleted"`
-	EntityId   int64   `json:"entity_id"`
-	ExtData    *string `json:"ext_data,omitempty"`
-	CTime      int64   `json:"c_time"`
-	MTime      int64   `json:"m_time"`
+	SId          int64   `json:"s_id"`
+	Name         string  `json:"name"`
+	Remark       string  `json:"remark"`
+	FunctionFlag int64   `json:"function_flag"`
+	Type         int     `json:"type"`
+	Status       int     `json:"status"`
+	Role         int     `json:"role"`
+	Mute         int     `json:"mute"`
+	Top          int64   `json:"top"`
+	NoteName     string  `json:"note_name"`
+	NoteAvatar   string  `json:"note_avatar"`
+	Deleted      int8    `json:"deleted"`
+	EntityId     int64   `json:"entity_id"`
+	ExtData      *string `json:"ext_data,omitempty"`
+	CTime        int64   `json:"c_time"`
+	MTime        int64   `json:"m_time"`
 }
 
 type SessionUser struct {

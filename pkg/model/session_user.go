@@ -194,38 +194,39 @@ func (d defaultSessionUserModel) AddUser(session *Session, entityIds []int64, us
 		}
 
 		sql2 := "insert into " + d.genUserSessionTableName(id) + " " +
-			"(session_id, user_id, type, entity_id, role, name, remark, function, mute, ext_data, parent_id, note_name, " +
+			"(session_id, user_id, type, entity_id, role, name, remark, function_flag, mute, ext_data, parent_id, note_name, " +
 			"note_avatar, create_time, update_time) " +
 			"values (?, ?, ?, ?, ?, ?, ?, ?, " +
 			"?, ?, ?, ?, ?, ?, ?) " +
-			"on duplicate key update top = ?, role = ?, name = ?, remark = ?, function = ?, mute = ?, " +
+			"on duplicate key update top = ?, role = ?, name = ?, remark = ?, function_flag = ?, mute = ?, " +
 			"deleted = ?, ext_data = ?, parent_id = ?, note_name = ?, note_avatar = ?, update_time = ? "
 		if err = tx.Exec(
-			sql2, session.Id, id, session.Type, entityIds[index], role[index], session.Name, session.Remark, session.Function,
+			sql2, session.Id, id, session.Type, entityIds[index], role[index], session.Name, session.Remark, session.FunctionFlag,
 			userMute, session.ExtData, 0, noteNames[index], noteAvatars[index], t, t,
-			0, role[index], session.Name, session.Remark, session.Function, userMute,
+			0, role[index], session.Name, session.Remark, session.FunctionFlag, userMute,
 			0, session.ExtData, 0, noteNames[index], noteAvatars[index], t,
 		).Error; err != nil {
 			return nil, err
 		}
 		userSession := &UserSession{
-			SessionId:  session.Id,
-			UserId:     userIds[index],
-			Type:       session.Type,
-			EntityId:   entityIds[index],
-			Name:       session.Name,
-			Remark:     session.Remark,
-			Top:        0,
-			Role:       role[index],
-			Mute:       userMute,
-			ExtData:    session.ExtData,
-			NoteName:   noteNames[index],
-			NoteAvatar: noteAvatars[index],
-			ParentId:   0,
-			Status:     0,
-			CreateTime: t,
-			UpdateTime: t,
-			Deleted:    0,
+			SessionId:    session.Id,
+			UserId:       userIds[index],
+			Type:         session.Type,
+			EntityId:     entityIds[index],
+			Name:         session.Name,
+			Remark:       session.Remark,
+			FunctionFlag: session.FunctionFlag,
+			Top:          0,
+			Role:         role[index],
+			Mute:         userMute,
+			ExtData:      session.ExtData,
+			NoteName:     noteNames[index],
+			NoteAvatar:   noteAvatars[index],
+			ParentId:     0,
+			Status:       0,
+			CreateTime:   t,
+			UpdateTime:   t,
+			Deleted:      0,
 		}
 		userSessions = append(userSessions, userSession)
 	}

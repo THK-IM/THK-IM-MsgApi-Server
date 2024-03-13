@@ -22,7 +22,7 @@ type CreateSessionReq struct {
 	ExtData        *string  `json:"ext_data"`       // 业务方扩展字段
 	Name           string   `json:"name"`           // session名
 	Remark         string   `json:"remark"`
-	Function       int64    `json:"function"`
+	FunctionFlag   int64    `json:"function_flag"`
 }
 
 type CreateSessionRes struct {

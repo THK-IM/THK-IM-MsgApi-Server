@@ -66,6 +66,7 @@ func (l *SessionLogic) CreateSession(req dto.CreateSessionReq, claims baseDto.Th
 				Type:     userSession.Type,
 				Name:     userSession.Name,
 				Remark:   userSession.Remark,
+				Function: userSession.Function,
 				Role:     userSession.Role,
 				Mute:     userSession.Mute,
 				CTime:    userSession.CreateTime,
@@ -95,6 +96,7 @@ func (l *SessionLogic) CreateSession(req dto.CreateSessionReq, claims baseDto.Th
 				NoteName:   userSession.NoteName,
 				NoteAvatar: userSession.NoteAvatar,
 				Remark:     userSession.Remark,
+				Function:   userSession.Function,
 				Role:       userSession.Role,
 				Mute:       userSession.Mute,
 				CTime:      userSession.CreateTime,
@@ -109,7 +111,7 @@ func (l *SessionLogic) CreateSession(req dto.CreateSessionReq, claims baseDto.Th
 }
 
 func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSessionRes, error) {
-	session, err := l.appCtx.SessionModel().CreateEmptySession(req.Type, req.ExtData, req.Name, req.Remark)
+	session, err := l.appCtx.SessionModel().CreateEmptySession(req.Type, req.ExtData, req.Name, req.Remark, req.Function)
 	if err != nil {
 		return nil, err
 	}
@@ -178,6 +180,7 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 		NoteName:   userSession.NoteName,
 		NoteAvatar: userSession.NoteAvatar,
 		Remark:     userSession.Remark,
+		Function:   userSession.Function,
 		Role:       userSession.Role,
 		Mute:       userSession.Mute,
 		Status:     userSession.Status,
@@ -201,7 +204,7 @@ func (l *SessionLogic) UpdateSession(req dto.UpdateSessionReq, claims baseDto.Th
 			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("release locker success: %t, error: %s", success, lockErr.Error())
 		}
 	}()
-	err := l.appCtx.SessionModel().UpdateSession(req.Id, req.Name, req.Remark, req.Mute, req.ExtData)
+	err := l.appCtx.SessionModel().UpdateSession(req.Id, req.Name, req.Remark, req.Mute, req.ExtData, req.Function)
 	if err != nil {
 		return err
 	}
@@ -223,7 +226,7 @@ func (l *SessionLogic) UpdateSession(req dto.UpdateSessionReq, claims baseDto.Th
 		sql := "mute | 1"
 		mute = &sql
 	}
-	return l.appCtx.UserSessionModel().UpdateUserSession(uIds, req.Id, req.Name, req.Remark, mute, req.ExtData, nil, nil, nil, nil, nil)
+	return l.appCtx.UserSessionModel().UpdateUserSession(uIds, req.Id, req.Name, req.Remark, mute, req.ExtData, nil, nil, nil, nil, nil, req.Function)
 }
 
 func (l *SessionLogic) UpdateSessionType(req dto.UpdateSessionTypeReq, claims baseDto.ThkClaims) error {
@@ -278,7 +281,7 @@ func (l *SessionLogic) UpdateUserSession(req dto.UpdateUserSessionReq, claims ba
 		}
 	}()
 	err = l.appCtx.UserSessionModel().UpdateUserSession([]int64{req.UId}, req.SId, nil,
-		nil, nil, nil, req.NoteName, req.Top, req.Status, nil, req.ParentId,
+		nil, nil, nil, req.NoteName, req.Top, req.Status, nil, req.ParentId, nil,
 	)
 	if err == nil {
 		err = l.appCtx.SessionUserModel().UpdateUser(req.SId, []int64{req.UId}, nil, req.Status, req.NoteName, req.NoteAvatar, nil)

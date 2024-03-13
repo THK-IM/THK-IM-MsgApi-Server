@@ -19,6 +19,7 @@ type (
 		Id         int64   `gorm:"id" json:"id"`
 		Name       string  `gorm:"name" json:"name"`
 		Remark     string  `gorm:"remark" json:"remark"`
+		Function   int64   `gorm:"function" json:"function"`
 		Type       int     `gorm:"type" json:"type"`
 		Mute       int8    `gorm:"mute" json:"mute"`
 		ExtData    *string `json:"ext_data" json:"ext_data"`
@@ -29,9 +30,9 @@ type (
 
 	SessionModel interface {
 		UpdateSessionType(sessionId int64, sessionType int) error
-		UpdateSession(sessionId int64, name, remark *string, mute *int, extData *string) error
+		UpdateSession(sessionId int64, name, remark *string, mute *int, extData *string, function *int64) error
 		FindSession(sessionId int64) (*Session, error)
-		CreateEmptySession(sessionType int, extData *string, name string, remark string) (*Session, error)
+		CreateEmptySession(sessionType int, extData *string, name string, remark string, function int64) (*Session, error)
 	}
 
 	defaultSessionModel struct {
@@ -49,8 +50,8 @@ func (d defaultSessionModel) UpdateSessionType(sessionId int64, sessionType int)
 	return d.db.Table(d.genSessionTableName(sessionId)).Where("id = ?", sessionId).Updates(updateMap).Error
 }
 
-func (d defaultSessionModel) UpdateSession(sessionId int64, name, remark *string, mute *int, extData *string) error {
-	if name == nil && remark == nil && mute == nil {
+func (d defaultSessionModel) UpdateSession(sessionId int64, name, remark *string, mute *int, extData *string, function *int64) error {
+	if name == nil && remark == nil && mute == nil && function == nil {
 		return nil
 	}
 	updateMap := make(map[string]interface{})
@@ -66,6 +67,9 @@ func (d defaultSessionModel) UpdateSession(sessionId int64, name, remark *string
 	if extData != nil {
 		updateMap["ext_data"] = *extData
 	}
+	if extData != nil {
+		updateMap["function"] = *function
+	}
 	updateMap["update_time"] = time.Now().UnixMilli()
 	return d.db.Table(d.genSessionTableName(sessionId)).Where("id = ?", sessionId).Updates(updateMap).Error
 }
@@ -77,7 +81,7 @@ func (d defaultSessionModel) FindSession(sessionId int64) (*Session, error) {
 	return session, err
 }
 
-func (d defaultSessionModel) CreateEmptySession(sessionType int, extData *string, name string, remark string) (*Session, error) {
+func (d defaultSessionModel) CreateEmptySession(sessionType int, extData *string, name string, remark string, function int64) (*Session, error) {
 	sessionId := int64(d.snowflakeNode.Generate())
 	currTime := time.Now().UnixMilli()
 	session := Session{
@@ -85,6 +89,7 @@ func (d defaultSessionModel) CreateEmptySession(sessionType int, extData *string
 		Type:       sessionType,
 		Name:       name,
 		Remark:     remark,
+		Function:   function,
 		ExtData:    extData,
 		CreateTime: currTime,
 		UpdateTime: currTime,

@@ -1,5 +1,15 @@
 package dto
 
+const (
+	FuncTextFlag  = 1  // 文本消息包括emoji表情
+	FuncAudioFlag = 2  // 录音消息
+	EmojiFlag     = 4  // 自定义表情
+	ImageFlag     = 8  // 图片消息
+	VideoFlag     = 16 // 视频消息
+	ForwardFlag   = 32 // 转发
+	ReadFlag      = 64 // 已读
+)
+
 type CreateSessionReq struct {
 	UId            int64    `json:"u_id" binding:"required"`
 	UserNoteName   string   `json:"user_note_name"`
@@ -12,6 +22,7 @@ type CreateSessionReq struct {
 	ExtData        *string  `json:"ext_data"`       // 业务方扩展字段
 	Name           string   `json:"name"`           // session名
 	Remark         string   `json:"remark"`
+	Function       int64    `json:"function"`
 }
 
 type CreateSessionRes struct {
@@ -21,6 +32,7 @@ type CreateSessionRes struct {
 	Type       int     `json:"type"`
 	Name       string  `json:"name"`
 	Remark     string  `json:"remark"`
+	Function   int64   `json:"function"`
 	ExtData    *string `json:"ext_data"`
 	NoteName   string  `json:"note_name"`
 	NoteAvatar string  `json:"note_avatar"`
@@ -34,11 +46,12 @@ type CreateSessionRes struct {
 }
 
 type UpdateSessionReq struct {
-	Id      int64   `json:"id"`
-	Mute    *int    `json:"mute"`
-	Name    *string `json:"name"`
-	Remark  *string `json:"remark"`
-	ExtData *string `json:"ext_data"`
+	Id       int64   `json:"id"`
+	Mute     *int    `json:"mute"`
+	Name     *string `json:"name"`
+	Remark   *string `json:"remark"`
+	Function *int64  `json:"function"`
+	ExtData  *string `json:"ext_data"`
 }
 
 type UpdateSessionTypeReq struct {
@@ -78,6 +91,7 @@ type UserSession struct {
 	SId        int64   `json:"s_id"`
 	Name       string  `json:"name"`
 	Remark     string  `json:"remark"`
+	Function   int64   `json:"function"`
 	Type       int     `json:"type"`
 	Status     int     `json:"status"`
 	Role       int     `json:"role"`

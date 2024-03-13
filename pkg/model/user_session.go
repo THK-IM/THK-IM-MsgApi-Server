@@ -30,6 +30,7 @@ type (
 		EntityId   int64   `gorm:"entity_id" json:"entity_id"`
 		Name       string  `gorm:"name" json:"name"`
 		Remark     string  `gorm:"remark" json:"remark"`
+		Function   int64   `gorm:"function" json:"function"`
 		ExtData    *string `json:"ext_data" json:"ext_data"`
 		Top        int64   `gorm:"top" json:"top"`
 		Role       int     `gorm:"role" json:"role"`
@@ -45,7 +46,7 @@ type (
 	UserSessionModel interface {
 		FindUserSessionByEntityId(userId, entityId int64, sessionType int, containDeleted bool) (*UserSession, error)
 		UpdateUserSessionType(userIds []int64, sessionId int64, sessionType int) error
-		UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute, extData, noteName *string, top *int64, status, role *int, parentId *int64) error
+		UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute, extData, noteName *string, top *int64, status, role *int, parentId, function *int64) error
 		FindEntityIdsInUserSession(userId, sessionId int64) []int64
 		QueryLatestUserSessions(userId, mTime int64, offset, count int, types []int) ([]*UserSession, error)
 		GetUserSession(userId, sessionId int64) (*UserSession, error)
@@ -101,8 +102,11 @@ func (d defaultUserSessionModel) UpdateUserSessionType(userIds []int64, sessionI
 	return
 }
 
-func (d defaultUserSessionModel) UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute, extData, noteName *string, top *int64, status, role *int, parentId *int64) (err error) {
-	if sessionName == nil && sessionRemark == nil && top == nil && status == nil && mute == nil && role == nil {
+func (d defaultUserSessionModel) UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute,
+	extData, noteName *string, top *int64, status, role *int, parentId, function *int64,
+) (err error) {
+	if sessionName == nil && sessionRemark == nil && top == nil && status == nil &&
+		mute == nil && role == nil && parentId == nil && function == nil {
 		return
 	}
 	// 分表uid数组
@@ -153,6 +157,9 @@ func (d defaultUserSessionModel) UpdateUserSession(userIds []int64, sessionId in
 		}
 		if parentId != nil {
 			sqlBuffer.WriteString(fmt.Sprintf("parent_id = %d, ", *parentId))
+		}
+		if function != nil {
+			sqlBuffer.WriteString(fmt.Sprintf("function = %d, ", *function))
 		}
 		sqlBuffer.WriteString(fmt.Sprintf("update_time = %d ", time.Now().UnixMilli()))
 		sqlBuffer.WriteString("where session_id = ? and user_id in ? ")

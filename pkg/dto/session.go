@@ -46,12 +46,12 @@ type CreateSessionRes struct {
 }
 
 type UpdateSessionReq struct {
-	Id       int64   `json:"id"`
-	Mute     *int    `json:"mute"`
-	Name     *string `json:"name"`
-	Remark   *string `json:"remark"`
-	Function *int64  `json:"function"`
-	ExtData  *string `json:"ext_data"`
+	Id           int64   `json:"id"`
+	Mute         *int    `json:"mute"`
+	Name         *string `json:"name"`
+	Remark       *string `json:"remark"`
+	FunctionFlag *int64  `json:"function_flag"`
+	ExtData      *string `json:"ext_data"`
 }
 
 type UpdateSessionTypeReq struct {

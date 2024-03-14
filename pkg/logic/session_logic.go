@@ -204,7 +204,7 @@ func (l *SessionLogic) UpdateSession(req dto.UpdateSessionReq, claims baseDto.Th
 			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("release locker success: %t, error: %s", success, lockErr.Error())
 		}
 	}()
-	err := l.appCtx.SessionModel().UpdateSession(req.Id, req.Name, req.Remark, req.Mute, req.ExtData, req.Function)
+	err := l.appCtx.SessionModel().UpdateSession(req.Id, req.Name, req.Remark, req.Mute, req.ExtData, req.FunctionFlag)
 	if err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func (l *SessionLogic) UpdateSession(req dto.UpdateSessionReq, claims baseDto.Th
 		sql := "mute | 1"
 		mute = &sql
 	}
-	return l.appCtx.UserSessionModel().UpdateUserSession(uIds, req.Id, req.Name, req.Remark, mute, req.ExtData, nil, nil, nil, nil, nil, req.Function)
+	return l.appCtx.UserSessionModel().UpdateUserSession(uIds, req.Id, req.Name, req.Remark, mute, req.ExtData, nil, nil, nil, nil, nil, req.FunctionFlag)
 }
 
 func (l *SessionLogic) UpdateSessionType(req dto.UpdateSessionTypeReq, claims baseDto.ThkClaims) error {

@@ -122,7 +122,8 @@ func (l *MessageLogic) SendMessage(req dto.SendMessageReq, claims baseDto.ThkCla
 		}
 		if userSession.Mute&model.MutedSingleBitInUserSessionStatus > 0 {
 			return nil, errorx.ErrUserMuted
-		} else if userSession.Mute&model.MutedAllBitInUserSessionStatus > 0 {
+		} else if userSession.Mute&model.MutedAllBitInUserSessionStatus > 0 && userSession.Role < model.SessionSuperAdmin {
+			//如果是超管或者是群主，全员被禁言情况下仍允许发言
 			return nil, errorx.ErrSessionMuted
 		}
 	}

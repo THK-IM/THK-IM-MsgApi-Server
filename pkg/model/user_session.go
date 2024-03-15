@@ -147,10 +147,10 @@ func (d defaultUserSessionModel) UpdateUserSession(userIds []int64, sessionId in
 			sqlBuffer.WriteString(fmt.Sprintf("mute = %s, ", *mute))
 		}
 		if extData != nil {
-			sqlBuffer.WriteString(fmt.Sprintf("ext_data = %s, ", *extData))
+			sqlBuffer.WriteString(fmt.Sprintf("ext_data = '%s', ", *extData))
 		}
 		if noteName != nil {
-			sqlBuffer.WriteString(fmt.Sprintf("note_name = %s, ", *noteName))
+			sqlBuffer.WriteString(fmt.Sprintf("note_name = '%s', ", *noteName))
 		}
 		if role != nil {
 			sqlBuffer.WriteString(fmt.Sprintf("role = %d, ", *role))

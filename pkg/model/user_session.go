@@ -105,10 +105,6 @@ func (d defaultUserSessionModel) UpdateUserSessionType(userIds []int64, sessionI
 func (d defaultUserSessionModel) UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute,
 	extData, noteName *string, top *int64, status, role *int, parentId, functionFlag *int64,
 ) (err error) {
-	if sessionName == nil && sessionRemark == nil && top == nil && status == nil &&
-		mute == nil && role == nil && parentId == nil && functionFlag == nil {
-		return
-	}
 	// 分表uid数组
 	sharedUIds := make(map[int64][]int64)
 	for _, uId := range userIds {

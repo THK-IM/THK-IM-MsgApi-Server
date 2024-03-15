@@ -41,11 +41,11 @@ type (
 		NewMsgId() int64
 		UpdateSessionMessageContent(sessionId, msgId, fUid int64, content string) (int64, error)
 		DeleteSessionMessage(sessionId, msgId int64, fUid int64) (int64, error)
-		FindSessionMessage(sessionId, msgId, fUid int64) (*SessionMessage, error)
 		DelMessages(sessionId int64, messageIds []int64, from, to int64) error
 		InsertMessage(clientId int64, fromUserId int64, sessionId int64, msgId int64, msgContent string, extData *string,
 			msgType int, atUserIds *string, replayMsgId *int64, creatTime int64) (*SessionMessage, error)
 		FindMessageByClientId(sessionId, clientId, fromUId int64) (*SessionMessage, error)
+		FindSessionMessage(sessionId, msgId, fUid int64) (*SessionMessage, error)
 		GetSessionMessages(sessionId, ctime int64, offset, count int, msgIds []int64, asc int8) ([]*SessionMessage, error)
 	}
 
@@ -62,7 +62,7 @@ func (d defaultSessionMessageModel) NewMsgId() int64 {
 }
 
 func (d defaultSessionMessageModel) UpdateSessionMessageContent(sessionId, msgId, fUid int64, content string) (int64, error) {
-	sqlStr := fmt.Sprintf("update %s set msg_content = ?, update_time = ?  where session_id = ? and msg_id = ? and from_user_id = ? ", d.genSessionMessageTableName(sessionId))
+	sqlStr := fmt.Sprintf("update %s set msg_content = ?, status , update_time = ?  where session_id = ? and msg_id = ? and from_user_id = ? ", d.genSessionMessageTableName(sessionId))
 	tx := d.db.Exec(sqlStr, content, time.Now().UnixMilli(), sessionId, msgId, fUid)
 	return tx.RowsAffected, tx.Error
 }
@@ -71,13 +71,6 @@ func (d defaultSessionMessageModel) DeleteSessionMessage(sessionId, msgId int64,
 	sqlStr := fmt.Sprintf("update %s set deleted = 1 where session_id = ? and msg_id = ? and from_user_id = ? and deleted = 0", d.genSessionMessageTableName(sessionId))
 	tx := d.db.Exec(sqlStr, sessionId, msgId, fUid)
 	return tx.RowsAffected, tx.Error
-}
-
-func (d defaultSessionMessageModel) FindSessionMessage(sessionId, msgId, fUid int64) (*SessionMessage, error) {
-	result := &SessionMessage{}
-	strSql := "select * from " + d.genSessionMessageTableName(sessionId) + " where session_id = ? and msg_id = ? and from_user_id = ?"
-	err := d.db.Raw(strSql, sessionId, msgId, fUid).Scan(result).Error
-	return result, err
 }
 
 func (d defaultSessionMessageModel) DelMessages(sessionId int64, messageIds []int64, from, to int64) error {
@@ -114,6 +107,13 @@ func (d defaultSessionMessageModel) InsertMessage(clientId int64, fromUserId int
 		return nil, tx.Error
 	}
 	return sessionMessage, nil
+}
+
+func (d defaultSessionMessageModel) FindSessionMessage(sessionId, msgId, fUid int64) (*SessionMessage, error) {
+	result := &SessionMessage{}
+	strSql := "select * from " + d.genSessionMessageTableName(sessionId) + " where session_id = ? and msg_id = ? and from_user_id = ?"
+	err := d.db.Raw(strSql, sessionId, msgId, fUid).Scan(result).Error
+	return result, err
 }
 
 func (d defaultSessionMessageModel) FindMessageByClientId(sessionId, clientId, fromUId int64) (*SessionMessage, error) {

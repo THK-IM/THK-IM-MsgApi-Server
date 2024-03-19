@@ -3,7 +3,9 @@ package logic
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/redis/go-redis/v9"
 	baseDto "github.com/thk-im/thk-im-base-server/dto"
 	"github.com/thk-im/thk-im-base-server/event"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
@@ -27,7 +29,10 @@ func (l *UserLogic) UpdateUserOnlineStatus(req *dto.PostUserOnlineReq, claims ba
 	var err error = nil
 	var cacheOnlineStatus *dto.UserOnlineStatus = nil
 	key := fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, req.Platform, req.UId)
-	cacheStatus := l.appCtx.RedisCache().Get(context.Background(), key).String()
+	cacheStatus, errCache := l.appCtx.RedisCache().Get(context.Background(), key).Result()
+	if errCache != nil && !errors.Is(errCache, redis.Nil) {
+		return errCache
+	}
 	if !strings.EqualFold("", cacheStatus) {
 		_ = json.Unmarshal([]byte(cacheStatus), &cacheOnlineStatus)
 	}
@@ -45,19 +50,21 @@ func (l *UserLogic) UpdateUserOnlineStatus(req *dto.PostUserOnlineReq, claims ba
 			return errJson
 		}
 		err = l.appCtx.RedisCache().Set(context.Background(), key, string(jsonBytes), timeout*time.Second).Err()
-		if err != nil {
+		if err == nil {
 			if cacheOnlineStatus == nil {
 				l.notify(req, claims)
 			}
 		}
 	} else {
+		l.appCtx.Logger().Infof("cacheOnlineStatus: %v", cacheOnlineStatus)
 		if cacheOnlineStatus != nil && cacheOnlineStatus.ConnId == req.ConnId {
+			// 缓存有数据 并且连接id一致，则删除缓存
 			err = l.appCtx.RedisCache().Del(context.Background(), key).Err()
-			if err != nil {
-				if cacheOnlineStatus == nil {
-					l.notify(req, claims)
-				}
+			if err == nil {
+				l.notify(req, claims)
 			}
+		} else {
+			l.notify(req, claims)
 		}
 	}
 	return err

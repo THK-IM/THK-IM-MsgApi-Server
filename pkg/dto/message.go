@@ -97,5 +97,5 @@ type SendSysMessageRes struct {
 }
 
 type KickUserReq struct {
-	UId int64 `json:"u_id" binding:"required"`
+	UIds int64 `json:"u_ids" binding:"required"`
 }

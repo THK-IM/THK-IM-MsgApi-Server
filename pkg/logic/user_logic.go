@@ -112,8 +112,7 @@ func (l *UserLogic) GetUsersOnlineStatus(uIds []int64, claims baseDto.ThkClaims)
 }
 
 func (l *UserLogic) KickUser(req *dto.KickUserReq, claims baseDto.ThkClaims) error {
-	ids := []int64{req.UId}
-	if idsStr, err := json.Marshal(ids); err != nil {
+	if idsStr, err := json.Marshal(req.UIds); err != nil {
 		return err
 	} else {
 		msg := make(map[string]interface{})

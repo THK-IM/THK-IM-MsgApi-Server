@@ -1,13 +1,14 @@
 package dto
 
 const (
-	FuncTextFlag  = 1  // 文本消息包括emoji表情
-	FuncAudioFlag = 2  // 录音消息
-	EmojiFlag     = 4  // 自定义表情
-	ImageFlag     = 8  // 图片消息
-	VideoFlag     = 16 // 视频消息
-	ForwardFlag   = 32 // 转发
-	ReadFlag      = 64 // 已读
+	FuncTextFlag    = 1  // 文本消息包括emoji表情
+	FuncAudioFlag   = 2  // 录音消息
+	FuncEmojiFlag   = 4  // 自定义表情
+	FuncImageFlag   = 8  // 图片消息
+	FuncVideoFlag   = 16 // 视频消息
+	FuncForwardFlag = 32 // 转发
+	FuncReadFlag    = 64 // 已读
+	FuncAll         = FuncTextFlag | FuncAudioFlag | FuncEmojiFlag | FuncImageFlag | FuncVideoFlag | FuncForwardFlag | FuncReadFlag
 )
 
 type CreateSessionReq struct {

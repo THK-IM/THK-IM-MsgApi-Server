@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-const userSessionUrl = "user_session"
+const userSessionUrl = "/user_session"
 
 func (d defaultMsgApi) DeleteUserSession(userId, sessionId int64, claims baseDto.ThkClaims) error {
 	url := fmt.Sprintf("%s%s/%d/%d", d.endpoint, userSessionUrl, userId, sessionId)

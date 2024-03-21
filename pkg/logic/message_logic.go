@@ -123,7 +123,7 @@ func (l *MessageLogic) SendMessage(req dto.SendMessageReq, claims baseDto.ThkCla
 		if userSession.Mute&model.MutedSingleBitInUserSessionStatus > 0 {
 			return nil, errorx.ErrUserMuted
 		} else if userSession.Mute&model.MutedAllBitInUserSessionStatus > 0 && userSession.Role < model.SessionSuperAdmin {
-			//如果是超管或者是群主，全员被禁言情况下仍允许发言
+			// 如果是超管或者是群主，全员被禁言情况下仍允许发言
 			return nil, errorx.ErrSessionMuted
 		}
 	}
@@ -203,10 +203,13 @@ func (l *MessageLogic) SendUserMessage(session *model.Session, req dto.SendMessa
 			CreateTime: req.CTime,
 			UpdateTime: now,
 		}
-		errMessage = l.appCtx.UserMessageModel().InsertUserMessage(userMessage)
-		if errMessage != nil {
-			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("SendMessage InsertMessage %v, %v", errMessage, req)
-			return nil, errMessage
+		if userMessage.FromUserId > 0 { // fromUserId = 0为系统发给用户的消息，不用插入数据库
+			// 插入发件人消息表
+			errMessage = l.appCtx.UserMessageModel().InsertUserMessage(userMessage)
+			if errMessage != nil {
+				l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("SendMessage InsertMessage %v, %v", errMessage, req)
+				return nil, errMessage
+			}
 		}
 	}
 	userMessage.Status = model.MsgStatusInit

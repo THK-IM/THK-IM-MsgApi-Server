@@ -32,7 +32,7 @@ func (l *MessageLogic) ReadUserMessages(req dto.ReadUserMessageReq, claims baseD
 		if errUpdate != nil {
 			return errUpdate
 		}
-		if session.FunctionFlag&dto.ReadFlag > 0 {
+		if session.FunctionFlag&dto.FuncReadFlag > 0 {
 			if userMessages, err := l.appCtx.UserMessageModel().FindUserMessages(req.UId, req.SId, req.MsgIds); err == nil {
 				for _, userMessage := range userMessages {
 					if userMessage.MsgId == 0 {

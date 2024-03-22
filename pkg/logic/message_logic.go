@@ -120,6 +120,10 @@ func (l *MessageLogic) SendMessage(req dto.SendMessageReq, claims baseDto.ThkCla
 			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("SendMessage GetUserSession %v, %v", req, errUserSession)
 			return nil, errorx.ErrSessionInvalid
 		}
+		if userSession.Deleted == 1 || userSession.UserId == 0 {
+			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("SendMessage GetUserSession %v, %v", req, userSession)
+			return nil, errorx.ErrSessionInvalid
+		}
 		msgCheckApi := l.appCtx.MessageCheckApi()
 		if msgCheckApi != nil {
 			// 检查消息是否可以发送[内容检测/建联逻辑等检查]

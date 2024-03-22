@@ -329,7 +329,7 @@ func (d defaultSessionUserModel) DelSession(sessionId int64) (err error) {
 	}
 
 	tableName = d.genSessionTableName(sessionId)
-	sqlStr = fmt.Sprintf("update %s set deleted = 1, update_time = ? where session_id = ?", tableName)
+	sqlStr = fmt.Sprintf("update %s set deleted = 1, update_time = ? where id = ?", tableName)
 	err = tx.Exec(sqlStr, now, sessionId).Error
 	return
 }

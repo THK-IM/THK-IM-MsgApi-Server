@@ -376,7 +376,7 @@ func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, del
 		offlineEvent[event.PushEventTypeKey] = t
 		offlineEvent[event.PushEventBodyKey] = body
 		offlineEvent[event.PushEventReceiversKey] = string(receiverStr)
-		err = l.appCtx.MsgPusherPublisher().Pub(deliverKey, offlineEvent)
+		err = l.appCtx.MsgOfflinePusherPublisher().Pub(deliverKey, offlineEvent)
 	}
 
 	return onlineUIds, offlineUIds, err

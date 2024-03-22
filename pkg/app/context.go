@@ -50,7 +50,10 @@ func (c *Context) UserApi() userSdk.UserApi {
 }
 
 func (c *Context) MessageCheckApi() sdk.MsgCheckerApi {
-	return c.Context.SdkMap["message_check_api"].(sdk.MsgCheckerApi)
+	if c.Context.SdkMap["msg_check_api"] == nil {
+		return nil
+	}
+	return c.Context.SdkMap["msg_check_api"].(sdk.MsgCheckerApi)
 }
 
 func (c *Context) Init(config *conf.Config) {

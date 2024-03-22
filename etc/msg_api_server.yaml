@@ -66,9 +66,21 @@ Sdks:
     Endpoint: "http://user-api.thkim.com:10000"
   - Name: user_api
     Endpoint: "http://user-api.thkim.com:10000"
+  - Name: message_check_api
+    Endpoint: "http://user-api.thkim.com:10000"
 MsgQueue:
   Publishers:
     - Topic: "push_msg"
+      RedisPublisher:
+        MaxQueueLen: 100000
+        RedisSource:
+          Endpoint: ${REDIS_ENDPOINT}
+          Uri: "/0"
+          MaxIdleConn: 2
+          MaxOpenConn: 4
+          ConnMaxLifeTime: 3600
+          ConnMaxIdleTime:
+    - Topic: "push_offline_msg"
       RedisPublisher:
         MaxQueueLen: 100000
         RedisSource:

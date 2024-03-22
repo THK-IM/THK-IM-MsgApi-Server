@@ -3,7 +3,7 @@ module github.com/thk-im/thk-im-msgapi-server
 go 1.19
 
 require (
-	github.com/thk-im/thk-im-base-server v0.0.0-20240309075748-faace620568a
+	github.com/thk-im/thk-im-base-server v0.0.0-20240322013325-92361c1845d9
 	github.com/thk-im/thk-im-user-server v0.0.0-20240319044528-4a3a88c1f10e
 )
 
@@ -71,7 +71,7 @@ require (
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/common v0.45.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
-	github.com/redis/go-redis/v9 v9.5.1 // indirect
+	github.com/redis/go-redis/v9 v9.5.1
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/segmentio/kafka-go v0.4.47 // indirect
 	github.com/sirupsen/logrus v1.9.3

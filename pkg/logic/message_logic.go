@@ -117,22 +117,30 @@ func (l *MessageLogic) SendMessage(req dto.SendMessageReq, claims baseDto.ThkCla
 	if req.FUid > 0 {
 		userSession, errUserSession := l.appCtx.UserSessionModel().GetUserSession(req.FUid, req.SId)
 		if errUserSession != nil {
-			l.appCtx.Logger().Error(errUserSession)
+			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("SendMessage GetUserSession %v, %v", req, errUserSession)
 			return nil, errorx.ErrSessionInvalid
+		}
+		msgCheckApi := l.appCtx.MessageCheckApi()
+		if msgCheckApi != nil {
+			// 检查消息是否可以发送[内容检测/建联逻辑等检查]
+			checkReq := &dto.CheckMessageReq{
+				SessionType:    session.Type,
+				SessionId:      session.Id,
+				FromUId:        req.FUid,
+				MessageType:    req.Type,
+				MessageContent: req.Body,
+			}
+			errCheck := msgCheckApi.CheckMessage(checkReq, claims)
+			if errCheck != nil {
+				l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("SendMessage CheckMessage %v, %v", checkReq, errCheck)
+				return nil, errCheck
+			}
 		}
 		if userSession.Mute&model.MutedSingleBitInUserSessionStatus > 0 {
 			return nil, errorx.ErrUserMuted
 		} else if userSession.Mute&model.MutedAllBitInUserSessionStatus > 0 && userSession.Role < model.SessionSuperAdmin {
 			// 如果是超管或者是群主，全员被禁言情况下仍允许发言
 			return nil, errorx.ErrSessionMuted
-		}
-	}
-
-	// 如果是单聊 需要判断对方是否拒收
-	if session.Type == model.SingleSessionType {
-		rejectReceivers := l.appCtx.SessionUserModel().FindUIdsInSessionContainStatus(req.SId, model.RejectBitInUserSessionStatus, req.Receivers)
-		if len(rejectReceivers) > 0 {
-			return nil, errorx.ErrUserReject
 		}
 	}
 
@@ -269,7 +277,7 @@ func (l *MessageLogic) publishSendMessageEvents(dtoMsg *dto.Message, sessionType
 	}
 	msgJsonStr := string(msgJson)
 	deliverKey := fmt.Sprintf("session-%d", dtoMsg.SId)
-	onlineUIds, offlineUIds, errPubPush := l.pubPushMessageEvent(event.SignalNewMessage, msgJsonStr, receivers, deliverKey, claims)
+	onlineUIds, offlineUIds, errPubPush := l.pubPushMessageEvent(event.SignalNewMessage, msgJsonStr, receivers, deliverKey, true, claims)
 	if errPubPush != nil {
 		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("pubPushMessageEvent, publish err:", errPubPush)
 		return nil, nil, errPubPush
@@ -288,7 +296,7 @@ func (l *MessageLogic) publishSendMessageEvents(dtoMsg *dto.Message, sessionType
 func (l *MessageLogic) PushMessage(req dto.PushMessageReq, claims baseDto.ThkClaims) (*dto.PushMessageRes, error) {
 	deliverKey := "push"
 	// 在线推送
-	onlineUIds, offlineUIds, err := l.pubPushMessageEvent(req.Type, req.Body, req.UIds, deliverKey, claims)
+	onlineUIds, offlineUIds, err := l.pubPushMessageEvent(req.Type, req.Body, req.UIds, deliverKey, req.OfflinePush, claims)
 	if err == nil {
 		rsp := &dto.PushMessageRes{}
 		rsp.OnlineUIds = onlineUIds
@@ -311,36 +319,39 @@ func (l *MessageLogic) pubSaveMsgEvent(msgBody string, receivers []int64, sessio
 }
 
 // 发布推送消息
-func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, deliverKey string, claims baseDto.ThkClaims) ([]int64, []int64, error) {
+func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, deliverKey string, offlinePushTag bool, claims baseDto.ThkClaims) ([]int64, []int64, error) {
 	uidOnlineKeys := make([]string, 0)
 	for _, uid := range uIds {
 		uidOnlineKeys = append(uidOnlineKeys, fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, PlatformAndroid, uid))
 		uidOnlineKeys = append(uidOnlineKeys, fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, PlatformIOS, uid))
 		uidOnlineKeys = append(uidOnlineKeys, fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, PlatformWeb, uid))
 	}
-	onlineUIds := make([]int64, 0)
-	onlineUsers, err := l.appCtx.RedisCache().MGet(context.Background(), uidOnlineKeys...).Result()
+	cacheOnLineUIds := make([]int64, 0)
+	redisOnlineUsers, err := l.appCtx.RedisCache().MGet(context.Background(), uidOnlineKeys...).Result()
 	if err != nil {
 		// 如果查询报错 默认全部用户为离线
 		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("pubPushMessageEvents error: %v", err)
 	} else {
-		for index, onlineUser := range onlineUsers {
-			if onlineUser != nil {
-				onlineUIds = append(onlineUIds, uIds[index/3])
+		for index, redisOnlineUser := range redisOnlineUsers {
+			if redisOnlineUser != nil {
+				cacheOnLineUIds = append(cacheOnLineUIds, uIds[index/3]) // 3代表三个平台android/ios/web
 			}
 		}
 	}
 
 	onlineUIdMap := make(map[int64]bool)
-	for _, uid := range onlineUIds {
+	for _, uid := range cacheOnLineUIds {
 		onlineUIdMap[uid] = true
 	}
 
+	onlineUIds := make([]int64, 0)
 	offlineUIds := make([]int64, 0)
 	for _, uid := range uIds {
-		online, ok := onlineUIdMap[uid]
-		if !ok && online {
+		online := onlineUIdMap[uid]
+		if !online {
 			offlineUIds = append(offlineUIds, uid)
+		} else {
+			onlineUIds = append(onlineUIds, uid)
 		}
 	}
 	receiverStr, errJson := json.Marshal(onlineUIds)
@@ -352,6 +363,22 @@ func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, del
 	m[event.PushEventBodyKey] = body
 	m[event.PushEventReceiversKey] = string(receiverStr)
 	err = l.appCtx.MsgPusherPublisher().Pub(deliverKey, m)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if offlinePushTag {
+		receiverStr, errJson = json.Marshal(offlineUIds)
+		if errJson != nil {
+			return nil, nil, errJson
+		}
+		offlineEvent := make(map[string]interface{})
+		offlineEvent[event.PushEventTypeKey] = t
+		offlineEvent[event.PushEventBodyKey] = body
+		offlineEvent[event.PushEventReceiversKey] = string(receiverStr)
+		err = l.appCtx.MsgPusherPublisher().Pub(deliverKey, offlineEvent)
+	}
+
 	return onlineUIds, offlineUIds, err
 }
 

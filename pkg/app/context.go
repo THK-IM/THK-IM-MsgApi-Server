@@ -2,7 +2,6 @@ package app
 
 import (
 	"github.com/thk-im/thk-im-base-server/conf"
-	baseCrypto "github.com/thk-im/thk-im-base-server/crypto"
 	"github.com/thk-im/thk-im-base-server/server"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/loader"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/model"
@@ -59,10 +58,6 @@ func (c *Context) MessageCheckApi() sdk.MsgCheckerApi {
 
 func (c *Context) Init(config *conf.Config) {
 	c.Context = &server.Context{}
-	if len(config.BodyCipher) == 16 && len(config.BodyCipherIV) == 16 {
-		crypto := baseCrypto.NewCrypto(config.BodyCipher, config.BodyCipherIV)
-		c.Context.Crypto = crypto
-	}
 	c.Context.Init(config)
 	c.Context.SdkMap = loader.LoadSdks(c.Config().Sdks, c.Logger())
 	c.Context.ModelMap = loader.LoadModels(c.Config().Models, c.Database(), c.Logger(), c.SnowflakeNode())

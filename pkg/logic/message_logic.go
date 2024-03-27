@@ -371,7 +371,7 @@ func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, del
 		return nil, nil, err
 	}
 
-	if offlinePushTag {
+	if offlinePushTag && len(offlineUIds) > 0 {
 		receiverStr, errJson = json.Marshal(offlineUIds)
 		if errJson != nil {
 			return nil, nil, errJson

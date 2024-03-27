@@ -3,7 +3,7 @@ module github.com/thk-im/thk-im-msgapi-server
 go 1.19
 
 require (
-	github.com/thk-im/thk-im-base-server v0.0.0-20240322112913-390418eea412
+	github.com/thk-im/thk-im-base-server v0.0.0-20240327111031-90073fd323e4
 	github.com/thk-im/thk-im-user-server v0.0.0-20240322113026-7484588ba9f4
 )
 
@@ -12,6 +12,7 @@ require (
 	github.com/elastic/go-elasticsearch/v8 v8.12.0 // indirect
 	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	go.opentelemetry.io/otel v1.21.0 // indirect
 	go.opentelemetry.io/otel/metric v1.21.0 // indirect

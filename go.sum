@@ -266,8 +266,8 @@ github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o
 github.com/stretchr/testify v1.8.2/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/stretchr/testify v1.8.3/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
-github.com/thk-im/thk-im-base-server v0.0.0-20240327112208-250112f4cda5 h1:olZTXmLjhnWIU/OnBY2ziPGPg6/i9JcGB4qe/w1oERw=
-github.com/thk-im/thk-im-base-server v0.0.0-20240327112208-250112f4cda5/go.mod h1:TFfuXLYxAtlGW2tIRn4RltdTlcvADTRGvjxSiSAstLE=
+github.com/thk-im/thk-im-base-server v0.0.0-20240329114033-0b5c497ed4dd h1:EXpqLjG7FJWfqoX4sn4X9EAeP17/hLX6qNgkm52y5ng=
+github.com/thk-im/thk-im-base-server v0.0.0-20240329114033-0b5c497ed4dd/go.mod h1:TFfuXLYxAtlGW2tIRn4RltdTlcvADTRGvjxSiSAstLE=
 github.com/thk-im/thk-im-user-server v0.0.0-20240322113026-7484588ba9f4 h1:Ynbu2FJsYC6FMvJlE869FK+d6tjj6Pz5uIyuCFdvOjo=
 github.com/thk-im/thk-im-user-server v0.0.0-20240322113026-7484588ba9f4/go.mod h1:OnuTQTKpFr4/oYDCYc9tJNklH1pXXGY9R2cnnDxEM/k=
 github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926/go.mod h1:9ESjWnEqriFuLhtthL60Sar/7RFoluCcXsuvEwTV5KM=

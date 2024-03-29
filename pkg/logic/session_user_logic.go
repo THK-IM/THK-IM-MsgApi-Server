@@ -129,6 +129,11 @@ func (l *SessionLogic) UpdateSessionUser(req dto.SessionUserUpdateReq, claims ba
 		return baseErrorx.ErrParamsError
 	}
 	err = l.appCtx.SessionUserModel().UpdateUser(req.SId, req.UIds, req.Role, nil, nil, nil, mute)
+	if err != nil {
+		return err
+	}
+	err = l.appCtx.UserSessionModel().UpdateUserSession(req.UIds, req.SId, nil, nil, mute,
+		nil, nil, nil, nil, nil, nil, nil)
 	return err
 }
 

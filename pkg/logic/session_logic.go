@@ -226,6 +226,10 @@ func (l *SessionLogic) UpdateSession(req dto.UpdateSessionReq, claims baseDto.Th
 		sql := "mute | 1"
 		mute = &sql
 	}
+	err = l.appCtx.SessionUserModel().UpdateUser(req.Id, uIds, nil, nil, nil, nil, mute)
+	if err != nil {
+		return err
+	}
 	return l.appCtx.UserSessionModel().UpdateUserSession(uIds, req.Id, req.Name, req.Remark, mute, req.ExtData, nil, nil, nil, nil, nil, req.FunctionFlag)
 }
 

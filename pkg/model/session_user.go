@@ -41,8 +41,8 @@ type (
 		FindSessionUsers(sessionId int64, userIds []int64) ([]*SessionUser, error)
 		FindSessionUser(sessionId, userId int64) (*SessionUser, error)
 		FindSessionUserCount(sessionId int64) (int, error)
-		FindUIdsInSessionWithoutStatus(sessionId int64, status int, uIds []int64) []int64
-		FindUIdsInSessionContainStatus(sessionId int64, status int, uIds []int64) []int64
+		FindUIdsInSessionWithoutStatus(sessionId int64, status int, uIds []int64) []*SessionUser
+		FindUIdsInSessionContainStatus(sessionId int64, status int, uIds []int64) []*SessionUser
 		AddUser(session *Session, entityIds []int64, userIds []int64, role []int, noteNames, noteAvatars []string, maxCount int) ([]*UserSession, error)
 		DelUser(session *Session, userIds []int64) (err error)
 		UpdateType(sessionId int64, sessionType int) (err error)
@@ -104,7 +104,7 @@ func (d defaultSessionUserModel) FindSessionUserCount(sessionId int64) (int, err
 	return count, err
 }
 
-func (d defaultSessionUserModel) FindUIdsInSessionWithoutStatus(sessionId int64, status int, userIds []int64) []int64 {
+func (d defaultSessionUserModel) FindUIdsInSessionWithoutStatus(sessionId int64, status int, userIds []int64) []*SessionUser {
 	sessionUsers := make([]*SessionUser, 0)
 	uIdsCondition := ""
 	if len(userIds) > 0 {
@@ -123,14 +123,10 @@ func (d defaultSessionUserModel) FindUIdsInSessionWithoutStatus(sessionId int64,
 			d.logger.Error(tx.Error)
 		}
 	}
-	uIds := make([]int64, 0)
-	for _, su := range sessionUsers {
-		uIds = append(uIds, su.UserId)
-	}
-	return uIds
+	return sessionUsers
 }
 
-func (d defaultSessionUserModel) FindUIdsInSessionContainStatus(sessionId int64, status int, userIds []int64) []int64 {
+func (d defaultSessionUserModel) FindUIdsInSessionContainStatus(sessionId int64, status int, userIds []int64) []*SessionUser {
 	sessionUsers := make([]*SessionUser, 0)
 	uIdsCondition := ""
 	if len(userIds) > 0 {
@@ -149,11 +145,7 @@ func (d defaultSessionUserModel) FindUIdsInSessionContainStatus(sessionId int64,
 			d.logger.Error(tx.Error)
 		}
 	}
-	uIds := make([]int64, 0)
-	for _, su := range sessionUsers {
-		uIds = append(uIds, su.UserId)
-	}
-	return uIds
+	return sessionUsers
 }
 
 func (d defaultSessionUserModel) AddUser(session *Session, entityIds []int64, userIds []int64, role []int, noteNames, noteAvatars []string, maxCount int) (userSessions []*UserSession, err error) {

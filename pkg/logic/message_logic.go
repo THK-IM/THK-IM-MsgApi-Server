@@ -12,6 +12,7 @@ import (
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/errorx"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/model"
+	"golang.org/x/exp/slices"
 	"strconv"
 	"strings"
 	"time"
@@ -176,7 +177,15 @@ func (l *MessageLogic) SendSessionMessage(session *model.Session, req dto.SendMe
 	}
 
 	dtoMsg := l.convSessionMessage2Message(sessionMessage)
-	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(dtoMsg, session.Type, receivers, claims); err != nil {
+	offlineReceiverIds := make([]int64, 0)
+	receiverUIds := make([]int64, 0)
+	for _, r := range receivers {
+		receiverUIds = append(receiverUIds, r.UserId)
+		if r.Status&model.SilenceBitInUserSessionStatus == 0 {
+			offlineReceiverIds = append(offlineReceiverIds, r.UserId)
+		}
+	}
+	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(dtoMsg, session.Type, receiverUIds, offlineReceiverIds, claims); err != nil {
 		return nil, errorx.ErrMessageDeliveryFailed
 	} else {
 		return &dto.SendMessageRes{
@@ -226,7 +235,15 @@ func (l *MessageLogic) SendUserMessage(session *model.Session, req dto.SendMessa
 	}
 	userMessage.Status = model.MsgStatusInit
 	dtoMsg := l.convUserMessage2Message(userMessage)
-	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(dtoMsg, session.Type, receivers, claims); err != nil {
+	offlineReceiverIds := make([]int64, 0)
+	receiverUIds := make([]int64, 0)
+	for _, r := range receivers {
+		receiverUIds = append(receiverUIds, r.UserId)
+		if r.Status&model.SilenceBitInUserSessionStatus == 0 {
+			offlineReceiverIds = append(offlineReceiverIds, r.UserId)
+		}
+	}
+	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(dtoMsg, session.Type, receiverUIds, offlineReceiverIds, claims); err != nil {
 		return nil, errorx.ErrMessageDeliveryFailed
 	} else {
 		return &dto.SendMessageRes{
@@ -260,7 +277,7 @@ func (l *MessageLogic) SendSysMessage(req dto.SendSysMessageReq, claims baseDto.
 		Deleted:    0,
 	}
 	dtoMsg := l.convSessionMessage2Message(sessionMessage)
-	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(dtoMsg, sessionType, req.Receivers, claims); err != nil {
+	if onlineUIds, offlineUIds, err := l.publishSendMessageEvents(dtoMsg, sessionType, req.Receivers, nil, claims); err != nil {
 		return nil, errorx.ErrMessageDeliveryFailed
 	} else {
 		return &dto.SendSysMessageRes{
@@ -273,7 +290,7 @@ func (l *MessageLogic) SendSysMessage(req dto.SendSysMessageReq, claims baseDto.
 
 }
 
-func (l *MessageLogic) publishSendMessageEvents(dtoMsg *dto.Message, sessionType int, receivers []int64, claims baseDto.ThkClaims) ([]int64, []int64, error) {
+func (l *MessageLogic) publishSendMessageEvents(dtoMsg *dto.Message, sessionType int, receivers []int64, offlineReceivers []int64, claims baseDto.ThkClaims) ([]int64, []int64, error) {
 	msgJson, err := json.Marshal(dtoMsg)
 	if err != nil {
 		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("publishSendMessageEvents json err", err)
@@ -281,7 +298,7 @@ func (l *MessageLogic) publishSendMessageEvents(dtoMsg *dto.Message, sessionType
 	}
 	msgJsonStr := string(msgJson)
 	deliverKey := fmt.Sprintf("session-%d", dtoMsg.SId)
-	onlineUIds, offlineUIds, errPubPush := l.pubPushMessageEvent(event.SignalNewMessage, msgJsonStr, receivers, deliverKey, true, claims)
+	onlineUIds, offlineUIds, errPubPush := l.pubPushMessageEvent(event.SignalNewMessage, msgJsonStr, receivers, offlineReceivers, deliverKey, true, claims)
 	if errPubPush != nil {
 		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Error("pubPushMessageEvent, publish err:", errPubPush)
 		return nil, nil, errPubPush
@@ -300,7 +317,7 @@ func (l *MessageLogic) publishSendMessageEvents(dtoMsg *dto.Message, sessionType
 func (l *MessageLogic) PushMessage(req dto.PushMessageReq, claims baseDto.ThkClaims) (*dto.PushMessageRes, error) {
 	deliverKey := "push"
 	// 在线推送
-	onlineUIds, offlineUIds, err := l.pubPushMessageEvent(req.Type, req.Body, req.UIds, deliverKey, req.OfflinePush, claims)
+	onlineUIds, offlineUIds, err := l.pubPushMessageEvent(req.Type, req.Body, req.UIds, req.UIds, deliverKey, req.OfflinePush, claims)
 	if err == nil {
 		rsp := &dto.PushMessageRes{}
 		rsp.OnlineUIds = onlineUIds
@@ -323,7 +340,7 @@ func (l *MessageLogic) pubSaveMsgEvent(msgBody string, receivers []int64, sessio
 }
 
 // 发布推送消息
-func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, deliverKey string, offlinePushTag bool, claims baseDto.ThkClaims) ([]int64, []int64, error) {
+func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, offlinePushUIds []int64, deliverKey string, offlinePushTag bool, claims baseDto.ThkClaims) ([]int64, []int64, error) {
 	uidOnlineKeys := make([]string, 0)
 	for _, uid := range uIds {
 		uidOnlineKeys = append(uidOnlineKeys, fmt.Sprintf(userOnlineKey, l.appCtx.Config().Name, PlatformAndroid, uid))
@@ -353,7 +370,9 @@ func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, del
 	for _, uid := range uIds {
 		online := onlineUIdMap[uid]
 		if !online {
-			offlineUIds = append(offlineUIds, uid)
+			if slices.Contains(offlineUIds, uid) {
+				offlineUIds = append(offlineUIds, uid)
+			}
 		} else {
 			onlineUIds = append(onlineUIds, uid)
 		}

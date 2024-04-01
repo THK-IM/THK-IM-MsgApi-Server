@@ -68,8 +68,8 @@ Sdks:
     Endpoint: "http://user-api.thkim.com:10000"
   - Name: user_api
     Endpoint: "http://user-api.thkim.com:10000"
-  - Name: msg_check_api
-    Endpoint: "http://user-api.thkim.com:10000"
+#  - Name: msg_check_api
+#    Endpoint: "http://user-api.thkim.com:10000"
 MsgQueue:
   Publishers:
     - Topic: "push_msg"

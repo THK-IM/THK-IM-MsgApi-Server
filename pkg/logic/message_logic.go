@@ -370,7 +370,7 @@ func (l *MessageLogic) pubPushMessageEvent(t int, body string, uIds []int64, off
 	for _, uid := range uIds {
 		online := onlineUIdMap[uid]
 		if !online {
-			if slices.Contains(offlineUIds, uid) {
+			if !slices.Contains(offlineUIds, uid) {
 				offlineUIds = append(offlineUIds, uid)
 			}
 		} else {

@@ -217,16 +217,15 @@ func (d defaultMsgApi) QuerySessionUser(sessionId, userId int64, claims baseDto.
 	}
 	if res.StatusCode() != http.StatusOK {
 		e := errorx.NewErrorXFromResp(res)
-		d.logger.WithFields(logrus.Fields(claims)).Errorf("QueryLatestSessionUsers: %d %d %v", sessionId, userId, e)
+		d.logger.WithFields(logrus.Fields(claims)).Errorf("QuerySessionUser: %d %d %v", sessionId, userId, e)
 		return nil, e
 	} else {
 		resp := &dto.SessionUser{}
 		e := json.Unmarshal(res.Body(), resp)
 		if e != nil {
-			d.logger.WithFields(logrus.Fields(claims)).Errorf("QueryLatestSessionUsers: %d %d %v", sessionId, userId, e)
-			return nil, e
+			return nil, nil
 		} else {
-			d.logger.WithFields(logrus.Fields(claims)).Infof("QueryLatestSessionUsers: %d %d %v", sessionId, userId, resp)
+			d.logger.WithFields(logrus.Fields(claims)).Infof("QuerySessionUser: %d %d %v", sessionId, userId, resp)
 			return resp, nil
 		}
 	}

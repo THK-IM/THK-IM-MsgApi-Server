@@ -29,6 +29,7 @@ type (
 	}
 
 	SessionApi interface {
+		QuerySessionUserCount(sessionId int64, claims baseDto.ThkClaims) (*dto.SessionUserCountRes, error)
 		DelSessionUser(sessionId int64, req *dto.SessionDelUserReq, claims baseDto.ThkClaims) error
 		AddSessionUser(sessionId int64, req *dto.SessionAddUserReq, claims baseDto.ThkClaims) error
 		DelSession(sessionId int64, req *dto.DelSessionReq, claims baseDto.ThkClaims) error

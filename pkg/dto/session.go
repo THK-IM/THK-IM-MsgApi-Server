@@ -154,3 +154,7 @@ type SessionUserUpdateReq struct {
 	Role *int    `json:"role"`
 	Mute *int    `json:"mute"`
 }
+
+type SessionUserCountRes struct {
+	Count int `json:"count"`
+}

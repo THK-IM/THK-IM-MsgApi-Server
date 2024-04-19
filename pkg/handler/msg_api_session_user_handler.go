@@ -95,6 +95,35 @@ func getSessionUser(appCtx *app.Context) gin.HandlerFunc {
 	}
 }
 
+func getSessionUserCount(appCtx *app.Context) gin.HandlerFunc {
+	l := logic.NewSessionLogic(appCtx)
+	return func(ctx *gin.Context) {
+		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
+		sessionId, errSessionId := strconv.ParseInt(ctx.Param("id"), 10, 64)
+		if errSessionId != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getSessionUserCount %v", errSessionId)
+			baseDto.ResponseBadRequest(ctx)
+			return
+		}
+
+		requestUid := ctx.GetInt64(userSdk.UidKey)
+		if requestUid > 0 { // 检查角色权限
+			if hasPermission := checkReadPermission(appCtx, requestUid, sessionId, claims); !hasPermission {
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getSessionUserCount %d %d ", requestUid, sessionId)
+				baseDto.ResponseForbidden(ctx)
+				return
+			}
+		}
+		if resp, err := l.QuerySessionUserCount(sessionId, claims); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getSessionUserCount %d %d", sessionId, err)
+			baseDto.ResponseInternalServerError(ctx, err)
+		} else {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("getSessionUserCount %d %d", sessionId, resp)
+			baseDto.ResponseSuccess(ctx, resp)
+		}
+	}
+}
+
 func addSessionUser(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionLogic(appCtx)
 	return func(ctx *gin.Context) {

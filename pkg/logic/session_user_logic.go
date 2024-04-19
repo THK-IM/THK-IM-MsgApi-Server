@@ -35,6 +35,14 @@ func (l *SessionLogic) QuerySessionUser(sessionId, userId int64, claims baseDto.
 	return l.convSessionUser(sessionUser), nil
 }
 
+func (l *SessionLogic) QuerySessionUserCount(sessionId int64, claims baseDto.ThkClaims) (*dto.SessionUserCountRes, error) {
+	count, err := l.appCtx.SessionUserModel().FindSessionUserCount(sessionId)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.SessionUserCountRes{Count: count}, nil
+}
+
 func (l *SessionLogic) AddSessionUser(sid int64, req dto.SessionAddUserReq, claims baseDto.ThkClaims) error {
 	lockKey := fmt.Sprintf(sessionUpdateLockKey, l.appCtx.Config().Name, sid)
 	locker := l.appCtx.NewLocker(lockKey, 1000, 1000)

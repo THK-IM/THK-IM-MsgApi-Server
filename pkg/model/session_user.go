@@ -99,7 +99,7 @@ func (d defaultSessionUserModel) FindSessionUser(sessionId, userId int64) (*Sess
 func (d defaultSessionUserModel) FindSessionUserCount(sessionId int64) (int, error) {
 	count := 0
 	tableName := d.genSessionUserTableName(sessionId)
-	sqlStr := fmt.Sprintf("select user_id from %s where session_id = ?  and deleted = 0", tableName)
+	sqlStr := fmt.Sprintf("select count(0) from %s where session_id = ?  and deleted = 0", tableName)
 	err := d.db.Raw(sqlStr, sessionId).Scan(&count).Error
 	return count, err
 }

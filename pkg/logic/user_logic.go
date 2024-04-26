@@ -51,7 +51,7 @@ func (l *UserLogic) UpdateUserOnlineStatus(req *dto.PostUserOnlineReq, claims ba
 		}
 		err = l.appCtx.RedisCache().Set(context.Background(), key, string(jsonBytes), timeout*time.Second).Err()
 		if err == nil {
-			minute := (req.TimestampMs - req.LoginTime) / (1000 * 3600)
+			minute := (req.TimestampMs - req.LoginTime) / (1000 * 60)
 			if cacheOnlineStatus == nil || ((minute)%5) == 0 { // 缓存未空或，每隔5分钟通知一次
 				l.notify(req, claims)
 			}

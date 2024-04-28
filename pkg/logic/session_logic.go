@@ -156,13 +156,12 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 			} else {
 				noteAvatars = append(noteAvatars, "")
 			}
-			noteAvatars = append(noteAvatars, req.UserNoteAvatar)
 			entityIds = append(entityIds, req.EntityId)
 			roles = append(roles, model.SessionMember)
 		}
 		maxMember := l.appCtx.Config().IM.MaxGroupMember
 		if req.Type == model.SuperGroupSessionType {
-			maxMember = l.appCtx.Config().IM.MaxGroupMember
+			maxMember = l.appCtx.Config().IM.MaxSuperGroupMember
 		}
 		if userSessions, errUserSessions := l.appCtx.SessionUserModel().AddUser(session, entityIds, members, roles, noteNames, noteAvatars, maxMember); errUserSessions != nil {
 			return nil, errUserSessions

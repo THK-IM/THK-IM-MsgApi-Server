@@ -42,6 +42,7 @@ func getLatestSessionUsers(appCtx *app.Context) gin.HandlerFunc {
 		req.SId = sessionId
 
 		requestUid := ctx.GetInt64(userSdk.UidKey)
+		appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("getLatestSessionUsers check permission %d %d ", requestUid, sessionId)
 		if requestUid > 0 { // 检查角色权限
 			if hasPermission := checkReadPermission(appCtx, requestUid, sessionId, claims); !hasPermission {
 				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getLatestSessionUsers %d %d ", requestUid, sessionId)

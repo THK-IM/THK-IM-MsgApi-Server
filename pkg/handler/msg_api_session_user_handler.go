@@ -254,33 +254,38 @@ func updateSessionUser(appCtx *app.Context) gin.HandlerFunc {
 }
 
 func checkReadPermission(appCtx *app.Context, uId, sessionId int64, claims baseDto.ThkClaims) bool {
-	if sessionUser, err := appCtx.SessionUserModel().FindSessionUser(sessionId, uId); err != nil {
+	sessionUser, err := appCtx.SessionUserModel().FindSessionUser(sessionId, uId)
+	if err != nil {
 		appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("checkReadPermission %d %d %v", uId, sessionId, err)
 		return false
-	} else {
-		if sessionUser.UserId > 0 {
-			return true
-		}
+	}
+	if sessionUser.UserId <= 0 {
+		appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("checkReadPermission %d", sessionUser.UserId)
+		return false
 	}
 	return true
 }
 
 func checkPermission(appCtx *app.Context, uId, sessionId int64, oprUIds []int64, claims baseDto.ThkClaims) bool {
-	if sessionUser, err := appCtx.SessionUserModel().FindSessionUser(sessionId, uId); err != nil {
+	sessionUser, err := appCtx.SessionUserModel().FindSessionUser(sessionId, uId)
+	if err != nil {
 		appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("checkReadPermission %d %d %v %v", uId, sessionId, oprUIds, err)
 		return false
-	} else {
-		if sessionUser.Role <= model.SessionAdmin {
+	}
+	if sessionUser.UserId <= 0 {
+		appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("checkReadPermission %d", sessionUser.UserId)
+		return false
+	}
+	if sessionUser.Role <= model.SessionAdmin {
+		return false
+	}
+	sessionUsers, errSessionUser := appCtx.SessionUserModel().FindSessionUsers(sessionId, oprUIds)
+	if errSessionUser != nil {
+		return false
+	}
+	for _, su := range sessionUsers {
+		if su.Role >= sessionUser.Role {
 			return false
-		}
-		sessionUsers, errSessionUser := appCtx.SessionUserModel().FindSessionUsers(sessionId, oprUIds)
-		if errSessionUser != nil {
-			return false
-		}
-		for _, su := range sessionUsers {
-			if su.Role >= sessionUser.Role {
-				return false
-			}
 		}
 	}
 	return true

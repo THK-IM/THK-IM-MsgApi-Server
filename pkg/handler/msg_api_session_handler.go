@@ -74,15 +74,20 @@ func updateSessionType(appCtx *app.Context) gin.HandlerFunc {
 
 		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 {
-			if sessionUser, err := appCtx.SessionUserModel().FindSessionUser(req.Id, requestUid); err != nil {
+			sessionUser, err := appCtx.SessionUserModel().FindSessionUser(req.Id, requestUid)
+			if err != nil {
 				baseDto.ResponseForbidden(ctx)
 				return
-			} else {
-				if sessionUser.Role == model.SessionMember {
-					appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateSessionType %d", sessionUser.Role)
-					baseDto.ResponseForbidden(ctx)
-					return
-				}
+			}
+			if sessionUser.UserId <= 0 {
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateSessionType %d", sessionUser.UserId)
+				baseDto.ResponseForbidden(ctx)
+				return
+			}
+			if sessionUser.Role == model.SessionMember {
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateSessionType %d", sessionUser.Role)
+				baseDto.ResponseForbidden(ctx)
+				return
 			}
 		}
 
@@ -122,15 +127,21 @@ func updateSession(appCtx *app.Context) gin.HandlerFunc {
 		}
 		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 {
-			if sessionUser, err := appCtx.SessionUserModel().FindSessionUser(req.Id, requestUid); err != nil {
+			sessionUser, err := appCtx.SessionUserModel().FindSessionUser(req.Id, requestUid)
+			if err != nil {
 				baseDto.ResponseForbidden(ctx)
 				return
-			} else {
-				if sessionUser.Role == model.SessionMember {
-					appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateSession %d", sessionUser.Role)
-					baseDto.ResponseForbidden(ctx)
-					return
-				}
+			}
+			if sessionUser.UserId <= 0 {
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateSession %d", sessionUser.UserId)
+				baseDto.ResponseForbidden(ctx)
+				return
+			}
+
+			if sessionUser.Role == model.SessionMember {
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("updateSession %d", sessionUser.Role)
+				baseDto.ResponseForbidden(ctx)
+				return
 			}
 		}
 
@@ -164,20 +175,26 @@ func deleteSession(appCtx *app.Context) gin.HandlerFunc {
 		}
 		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 {
-			if sessionUser, err := appCtx.SessionUserModel().FindSessionUser(req.Id, requestUid); err != nil {
+			sessionUser, err := appCtx.SessionUserModel().FindSessionUser(req.Id, requestUid)
+			if err != nil {
 				baseDto.ResponseForbidden(ctx)
 				return
-			} else {
-				if sessionUser.Role == model.SessionMember {
-					appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSession %d", sessionUser.Role)
-					baseDto.ResponseForbidden(ctx)
-					return
-				} else if sessionUser.Type == model.SingleSessionType {
-					appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSession %d", sessionUser.Type)
-					baseDto.ResponseBadRequest(ctx)
-					return
-				}
 			}
+			if sessionUser.UserId <= 0 {
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSession %d", sessionUser.UserId)
+				baseDto.ResponseForbidden(ctx)
+				return
+			}
+			if sessionUser.Role == model.SessionMember {
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSession %d", sessionUser.Role)
+				baseDto.ResponseForbidden(ctx)
+				return
+			} else if sessionUser.Type == model.SingleSessionType {
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSession %d", sessionUser.Type)
+				baseDto.ResponseBadRequest(ctx)
+				return
+			}
+
 		}
 
 		if err := l.DelSession(req, claims); err != nil {
@@ -330,8 +347,14 @@ func getSessionMessages(appCtx *app.Context) gin.HandlerFunc {
 		}
 		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 {
-			if _, err := appCtx.SessionUserModel().FindSessionUser(iSessionId, requestUid); err != nil {
+			sessionUser, err := appCtx.SessionUserModel().FindSessionUser(iSessionId, requestUid)
+			if err != nil {
 				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getSessionMessages %s", err.Error())
+				baseDto.ResponseForbidden(ctx)
+				return
+			}
+			if sessionUser.UserId <= 0 {
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("getSessionMessages %d", sessionUser.UserId)
 				baseDto.ResponseForbidden(ctx)
 				return
 			}
@@ -374,17 +397,23 @@ func deleteSessionMessage(appCtx *app.Context) gin.HandlerFunc {
 		}
 		requestUid := ctx.GetInt64(userSdk.UidKey)
 		if requestUid > 0 {
-			if sessionUser, err := appCtx.SessionUserModel().FindSessionUser(iSessionId, requestUid); err != nil {
+			sessionUser, err := appCtx.SessionUserModel().FindSessionUser(iSessionId, requestUid)
+			if err != nil {
 				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSessionMessage %s", err.Error())
 				baseDto.ResponseForbidden(ctx)
 				return
-			} else {
-				if sessionUser.Role != model.SessionOwner {
-					appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSessionMessage %d %d %d", sessionUser.UserId, sessionUser.SessionId, sessionUser.Role)
-					baseDto.ResponseForbidden(ctx)
-					return
-				}
 			}
+			if sessionUser.UserId <= 0 {
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSessionMessage %d", sessionUser.UserId)
+				baseDto.ResponseForbidden(ctx)
+				return
+			}
+			if sessionUser.Role != model.SessionOwner {
+				appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("deleteSessionMessage %d %d %d", sessionUser.UserId, sessionUser.SessionId, sessionUser.Role)
+				baseDto.ResponseForbidden(ctx)
+				return
+			}
+
 		}
 		req.SId = iSessionId
 		if err := l.DelSessionMessage(&req, claims); err != nil {

@@ -3,8 +3,8 @@ module github.com/thk-im/thk-im-msgapi-server
 go 1.19
 
 require (
-	github.com/thk-im/thk-im-base-server v0.0.0-20240329115557-05888130b981
-	github.com/thk-im/thk-im-user-server v0.0.0-20240322113026-7484588ba9f4
+	github.com/thk-im/thk-im-base-server v0.0.0-20240621063652-5dfbf245204c
+	github.com/thk-im/thk-im-user-server v0.0.0-20240621063822-bc8e9a3eba1d
 )
 
 require (
@@ -80,7 +80,7 @@ require (
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
-	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63 // indirect
+	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
@@ -88,5 +88,5 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/mysql v1.5.2 // indirect
-	gorm.io/gorm v1.25.7
+	gorm.io/gorm v1.25.10
 )

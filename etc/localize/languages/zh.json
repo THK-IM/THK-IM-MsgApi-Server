@@ -1,0 +1,8 @@
+{
+  "Params Error": "参数错误",
+  "Not Found": "数据不存在",
+  "Not support Recommit": "不支持重复提交",
+  "Permission denied": "拒绝访问",
+  "Internal Server err": "服务内部错误",
+  "Server busy": "服务繁忙"
+}

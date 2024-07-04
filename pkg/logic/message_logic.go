@@ -131,6 +131,7 @@ func (l *MessageLogic) SendMessage(req dto.SendMessageReq, claims baseDto.ThkCla
 			checkReq := &dto.CheckMessageReq{
 				SessionType:    session.Type,
 				SessionId:      session.Id,
+				FunctionFlag:   session.FunctionFlag,
 				FromUId:        req.FUid,
 				MessageType:    req.Type,
 				MessageContent: req.Body,

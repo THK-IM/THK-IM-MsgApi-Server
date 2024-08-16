@@ -64,32 +64,65 @@ func (l *MessageLogic) ReadUserMessages(req dto.ReadUserMessageReq, claims baseD
 }
 
 func (l *MessageLogic) RevokeUserMessage(req dto.RevokeUserMessageReq, claims baseDto.ThkClaims) error {
-	if userMessage, err := l.appCtx.UserMessageModel().FindUserMessage(req.UId, req.SId, req.MsgId); err == nil {
-		if userMessage.SessionId == 0 || userMessage.Deleted == 1 {
-			return errorx.ErrSessionMessageInvalid
-		}
-		if userMessage.MsgType < 0 { // 小于0的类型消息为状态操作消息，不能重新编辑
-			return errorx.ErrMessageTypeNotSupport
-		}
-		if userMessage.Deleted == 1 { // 被删除了则不做处理
+	session, errSession := l.appCtx.SessionModel().FindSession(req.SId)
+	if errSession != nil {
+		return errorx.ErrSessionInvalid
+	}
+	if session.Type == model.SuperGroupSessionType {
+		if sessionMessage, err := l.appCtx.SessionMessageModel().FindSessionMessage(req.SId, req.MsgId, req.UId); err == nil {
+			if sessionMessage.SessionId == 0 {
+				return errorx.ErrSessionMessageInvalid
+			}
+			if sessionMessage.MsgType < 0 { // 小于0的类型消息为状态操作消息，不能重新编辑
+				return errorx.ErrMessageTypeNotSupport
+			}
+			if sessionMessage.Deleted == 1 { // 被删除了则不做处理
+				return nil
+			}
+			sendMessageReq := dto.SendMessageReq{
+				CId:    l.genClientId(),
+				SId:    req.SId,
+				Type:   model.MsgTypeRevoke,
+				FUid:   req.UId,
+				CTime:  time.Now().UnixMilli(),
+				RMsgId: &req.MsgId,
+			} // 发送给session下的所有人
+			if _, err = l.SendMessage(sendMessageReq, claims); err != nil {
+				l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("RevokeSessionMsg err:%v, %v", req, err)
+				return err
+			}
 			return nil
+		} else {
+			return err
 		}
-		sendMessageReq := dto.SendMessageReq{
-			CId:    l.genClientId(),
-			SId:    req.SId,
-			Type:   model.MsgTypeRevoke,
-			FUid:   req.UId,
-			CTime:  time.Now().UnixMilli(),
-			RMsgId: &req.MsgId,
-		} // 发送给session下的所有人
-		if _, err = l.SendMessage(sendMessageReq, claims); err != nil {
+	} else {
+		if userMessage, err := l.appCtx.UserMessageModel().FindUserMessage(req.UId, req.SId, req.MsgId); err == nil {
+			if userMessage.SessionId == 0 {
+				return errorx.ErrSessionMessageInvalid
+			}
+			if userMessage.MsgType < 0 { // 小于0的类型消息为状态操作消息，不能重新编辑
+				return errorx.ErrMessageTypeNotSupport
+			}
+			if userMessage.Deleted == 1 { // 被删除了则不做处理
+				return nil
+			}
+			sendMessageReq := dto.SendMessageReq{
+				CId:    l.genClientId(),
+				SId:    req.SId,
+				Type:   model.MsgTypeRevoke,
+				FUid:   req.UId,
+				CTime:  time.Now().UnixMilli(),
+				RMsgId: &req.MsgId,
+			} // 发送给session下的所有人
+			if _, err = l.SendMessage(sendMessageReq, claims); err != nil {
+				l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("RevokeUserMessage err:%v, %v", req, err)
+				return err
+			}
+			return nil
+		} else {
 			l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("RevokeUserMessage err:%v, %v", req, err)
 			return err
 		}
-		return nil
-	} else {
-		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("RevokeUserMessage err:%v, %v", req, err)
-		return err
 	}
 }
 

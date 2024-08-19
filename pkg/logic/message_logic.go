@@ -135,6 +135,7 @@ func (l *MessageLogic) SendMessage(req dto.SendMessageReq, claims baseDto.ThkCla
 				FromUId:        req.FUid,
 				MessageType:    req.Type,
 				MessageContent: req.Body,
+				EntityId:       userSession.EntityId,
 			}
 			errCheck := msgCheckApi.CheckMessage(checkReq, claims)
 			if errCheck != nil {

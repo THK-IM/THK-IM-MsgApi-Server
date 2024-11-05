@@ -295,7 +295,7 @@ func (l *SessionLogic) UpdateUserSession(req dto.UpdateUserSessionReq, claims ba
 }
 
 func (l *SessionLogic) SearchUserSessions(req dto.SearchUserSessionReq, claims baseDto.ThkClaims) (*dto.SearchUserSessionRes, error) {
-	userSessions, err := l.appCtx.UserSessionModel().QueryUserSessions(req.UId, req.Offset, req.Count, req.Types, req.Keywords)
+	userSessions, total, err := l.appCtx.UserSessionModel().QueryUserSessions(req.UId, req.Offset, req.Count, req.Types, req.Keywords)
 	if err != nil {
 		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("SearchUserSessions, %v %v", req, err)
 		return nil, err
@@ -305,7 +305,7 @@ func (l *SessionLogic) SearchUserSessions(req dto.SearchUserSessionReq, claims b
 		dtoUserSession := l.convUserSession(userSession)
 		dtoUserSessions = append(dtoUserSessions, dtoUserSession)
 	}
-	return &dto.SearchUserSessionRes{Data: dtoUserSessions}, nil
+	return &dto.SearchUserSessionRes{Data: dtoUserSessions, Total: total}, nil
 }
 
 func (l *SessionLogic) QueryLatestUserSessions(req dto.QueryLatestUserSessionReq, claims baseDto.ThkClaims) (*dto.QueryLatestUserSessionsRes, error) {

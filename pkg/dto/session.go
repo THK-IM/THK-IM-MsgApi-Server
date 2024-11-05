@@ -130,7 +130,8 @@ type SessionUser struct {
 }
 
 type SearchUserSessionRes struct {
-	Data []*UserSession `json:"data"`
+	Data  []*UserSession `json:"data"`
+	Total int            `json:"total"`
 }
 
 type QueryLatestUserSessionsRes struct {

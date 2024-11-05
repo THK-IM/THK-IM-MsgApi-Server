@@ -49,7 +49,7 @@ type (
 		UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute, extData, noteName *string, top *int64, status, role *int, parentId, functionFlag *int64) error
 		FindEntityIdsInUserSession(userId, sessionId int64) []int64
 		QueryLatestUserSessions(userId, mTime int64, offset, count int, types []int) ([]*UserSession, error)
-		QueryUserSessions(userId int64, offset, count int, types []int, searchName *string) ([]*UserSession, error)
+		QueryUserSessions(userId int64, offset, count int, types []int, searchName *string) ([]*UserSession, int, error)
 		GetUserSession(userId, sessionId int64) (*UserSession, error)
 		GenUserSessionTableName(userId int64) string
 	}
@@ -193,7 +193,7 @@ func (d defaultUserSessionModel) QueryLatestUserSessions(userId, mTime int64, of
 	return userSessions, nil
 }
 
-func (d defaultUserSessionModel) QueryUserSessions(userId int64, offset, count int, types []int, searchName *string) ([]*UserSession, error) {
+func (d defaultUserSessionModel) QueryUserSessions(userId int64, offset, count int, types []int, searchName *string) ([]*UserSession, int, error) {
 	var (
 		err          error
 		userSessions = make([]*UserSession, 0)
@@ -209,9 +209,19 @@ func (d defaultUserSessionModel) QueryUserSessions(userId int64, offset, count i
 
 	err = d.db.Raw(sqlStr, userId, types, count, offset).Scan(&userSessions).Error
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return userSessions, nil
+
+	total := 0
+	sqlStr = "select count(0) from " + d.GenUserSessionTableName(userId) +
+		" where user_id = ? and type in ? and deleted = 0 " +
+		keywordsSql
+	err = d.db.Raw(sqlStr, userId, types).Scan(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return userSessions, total, nil
 }
 
 func (d defaultUserSessionModel) GetUserSession(userId, sessionId int64) (*UserSession, error) {

@@ -43,6 +43,7 @@ type (
 		DeleteUserSession(userId, sessionId int64, claims baseDto.ThkClaims) error
 		UpdateUserSession(req *dto.UpdateUserSessionReq, claims baseDto.ThkClaims) error
 		QueryUserSession(req *dto.QueryUserSessionReq, claims baseDto.ThkClaims) (*dto.UserSession, error)
+		SearchUserSession(req *dto.SearchUserSessionReq, claims baseDto.ThkClaims) (*dto.SearchUserSessionRes, error)
 		QueryLatestUserSession(req *dto.QueryLatestUserSessionReq, claims baseDto.ThkClaims) (*dto.QueryLatestUserSessionsRes, error)
 	}
 

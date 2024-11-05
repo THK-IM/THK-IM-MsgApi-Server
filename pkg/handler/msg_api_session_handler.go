@@ -239,6 +239,33 @@ func updateUserSession(appCtx *app.Context) gin.HandlerFunc {
 	}
 }
 
+func searchUserSessions(appCtx *app.Context) gin.HandlerFunc {
+	l := logic.NewSessionLogic(appCtx)
+	return func(ctx *gin.Context) {
+		claims := ctx.MustGet(baseMiddleware.ClaimsKey).(baseDto.ThkClaims)
+		var req dto.SearchUserSessionReq
+		if err := ctx.ShouldBindQuery(&req); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("searchUserSessions %s", err.Error())
+			baseDto.ResponseBadRequest(ctx)
+			return
+		}
+		requestUid := ctx.GetInt64(userSdk.UidKey)
+		if requestUid > 0 && requestUid != req.UId {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("searchUserSessions %d %d", requestUid, req.UId)
+			baseDto.ResponseForbidden(ctx)
+			return
+		}
+
+		if resp, err := l.SearchUserSessions(req, claims); err != nil {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("searchUserSessions %v %v", req, err)
+			baseDto.ResponseInternalServerError(ctx, err)
+		} else {
+			appCtx.Logger().WithFields(logrus.Fields(claims)).Infof("searchUserSessions %v %v", req, resp)
+			baseDto.ResponseSuccess(ctx, resp)
+		}
+	}
+}
+
 func getLatestUserSessions(appCtx *app.Context) gin.HandlerFunc {
 	l := logic.NewSessionLogic(appCtx)
 	return func(ctx *gin.Context) {

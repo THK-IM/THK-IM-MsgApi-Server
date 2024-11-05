@@ -50,6 +50,7 @@ func RegisterMsgApiHandlers(appCtx *app.Context) {
 	{
 		userSessionRoute.GET("", queryUserSession(appCtx))                // 用户查询session
 		userSessionRoute.GET("/latest", getLatestUserSessions(appCtx))    // 用户获取自己最近的session列表
+		userSessionRoute.GET("/search", searchUserSessions(appCtx))       // 用户查询/搜索自己的session列表，按更新时间倒叙
 		userSessionRoute.GET("/:uid/:sid", queryUserSessionBySId(appCtx)) // 用户获取自己的session
 		userSessionRoute.PUT("", updateUserSession(appCtx))               // 用户修改自己的session
 		userSessionRoute.DELETE("/:uid/:sid", deleteUserSession(appCtx))  // 用户删除自己的session

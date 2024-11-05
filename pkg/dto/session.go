@@ -74,6 +74,14 @@ type UpdateUserSessionReq struct {
 	ParentId   *int64  `json:"parent_id"`
 }
 
+type SearchUserSessionReq struct {
+	UId      int64   `json:"u_id" form:"u_id"`
+	Offset   int     `json:"offset" form:"offset"`
+	Count    int     `json:"count" form:"count"`
+	Keywords *string `json:"m_time" form:"m_time"`
+	Types    []int   `json:"types" form:"types"`
+}
+
 type QueryLatestUserSessionReq struct {
 	UId    int64 `json:"u_id" form:"u_id"`
 	Offset int   `json:"offset" form:"offset"`
@@ -119,6 +127,10 @@ type SessionUser struct {
 	Deleted    int8   `json:"deleted"`
 	CTime      int64  `json:"c_time"`
 	MTime      int64  `json:"m_time"`
+}
+
+type SearchUserSessionRes struct {
+	Data []*UserSession `json:"data"`
 }
 
 type QueryLatestUserSessionsRes struct {

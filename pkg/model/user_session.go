@@ -49,6 +49,7 @@ type (
 		UpdateUserSession(userIds []int64, sessionId int64, sessionName, sessionRemark, mute, extData, noteName *string, top *int64, status, role *int, parentId, functionFlag *int64) error
 		FindEntityIdsInUserSession(userId, sessionId int64) []int64
 		QueryLatestUserSessions(userId, mTime int64, offset, count int, types []int) ([]*UserSession, error)
+		QueryUserSessions(userId int64, offset, count int, types []int, searchName *string) ([]*UserSession, error)
 		GetUserSession(userId, sessionId int64) (*UserSession, error)
 		GenUserSessionTableName(userId int64) string
 	}
@@ -186,6 +187,27 @@ func (d defaultUserSessionModel) QueryLatestUserSessions(userId, mTime int64, of
 		sqlStr := "select * from " + d.GenUserSessionTableName(userId) + " where user_id = ? and update_time > ? order by update_time asc limit ? offset ?"
 		err = d.db.Raw(sqlStr, userId, mTime, count, offset).Scan(&userSessions).Error
 	}
+	if err != nil {
+		return nil, err
+	}
+	return userSessions, nil
+}
+
+func (d defaultUserSessionModel) QueryUserSessions(userId int64, offset, count int, types []int, searchName *string) ([]*UserSession, error) {
+	var (
+		err          error
+		userSessions = make([]*UserSession, 0)
+	)
+	keywordsSql := ""
+	if searchName != nil {
+		keywordsSql = fmt.Sprintf(" and name like '%%%s%%' ", *searchName)
+	}
+	sqlStr := "select * from " + d.GenUserSessionTableName(userId) +
+		" where user_id = ? and type in ? and deleted = 0 " +
+		keywordsSql +
+		" order by update_time desc limit ? offset ?"
+
+	err = d.db.Raw(sqlStr, userId, types, count, offset).Scan(&userSessions).Error
 	if err != nil {
 		return nil, err
 	}

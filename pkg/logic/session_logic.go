@@ -294,6 +294,20 @@ func (l *SessionLogic) UpdateUserSession(req dto.UpdateUserSessionReq, claims ba
 	return
 }
 
+func (l *SessionLogic) SearchUserSessions(req dto.SearchUserSessionReq, claims baseDto.ThkClaims) (*dto.SearchUserSessionRes, error) {
+	userSessions, err := l.appCtx.UserSessionModel().QueryUserSessions(req.UId, req.Offset, req.Count, req.Types, req.Keywords)
+	if err != nil {
+		l.appCtx.Logger().WithFields(logrus.Fields(claims)).Errorf("SearchUserSessions, %v %v", req, err)
+		return nil, err
+	}
+	dtoUserSessions := make([]*dto.UserSession, 0)
+	for _, userSession := range userSessions {
+		dtoUserSession := l.convUserSession(userSession)
+		dtoUserSessions = append(dtoUserSessions, dtoUserSession)
+	}
+	return &dto.SearchUserSessionRes{Data: dtoUserSessions}, nil
+}
+
 func (l *SessionLogic) QueryLatestUserSessions(req dto.QueryLatestUserSessionReq, claims baseDto.ThkClaims) (*dto.QueryLatestUserSessionsRes, error) {
 	userSessions, err := l.appCtx.UserSessionModel().QueryLatestUserSessions(req.UId, req.MTime, req.Offset, req.Count, req.Types)
 	if err != nil {

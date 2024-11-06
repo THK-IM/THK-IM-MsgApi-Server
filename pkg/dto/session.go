@@ -78,7 +78,7 @@ type SearchUserSessionReq struct {
 	UId      int64   `json:"u_id" form:"u_id"`
 	Offset   int     `json:"offset" form:"offset"`
 	Count    int     `json:"count" form:"count"`
-	Keywords *string `json:"m_time" form:"m_time"`
+	Keywords *string `json:"keywords" form:"keywords"`
 	Types    []int   `json:"types" form:"types"`
 }
 

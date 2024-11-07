@@ -7,6 +7,7 @@ import (
 	"github.com/thk-im/thk-im-msgapi-server/pkg/app"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/dto"
 	"github.com/thk-im/thk-im-msgapi-server/pkg/model"
+	"net/url"
 )
 
 const (
@@ -29,7 +30,8 @@ func (l *SessionObjectLogic) GetUploadParams(req dto.GetUploadParamsReq, claims 
 	if errSu != nil || su.UserId <= 0 {
 		return nil, baseErrorx.ErrPermission
 	}
-	uploadKey := fmt.Sprintf("session-%d/%d/%d-%s", req.SId, req.UId, req.ClientId, req.FName)
+	fileName := url.PathEscape(req.FName)
+	uploadKey := fmt.Sprintf("session-%d/%d/%d-%s", req.SId, req.UId, req.ClientId, fileName)
 	uploadUrl, uploadMethod, params, err := l.appCtx.ObjectStorage().GetUploadParams(uploadKey)
 	if err != nil {
 		return nil, err

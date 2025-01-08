@@ -194,7 +194,7 @@ func (d defaultSessionUserModel) AddUser(session *Session, entityIds []int64, us
 			"deleted = ?, ext_data = ?, parent_id = ?, note_name = ?, note_avatar = ?, update_time = ? "
 		if err = tx.Exec(
 			sql2, session.Id, id, session.Type, entityIds[index], role[index], session.Name, session.Remark, session.FunctionFlag,
-			userMute, session.ExtData, 0, noteNames[index], noteAvatars[index], t, t,
+			userMute, session.ExtData, 0, noteNames[index], noteAvatars[index], t, 0,
 			0, role[index], session.Name, session.Remark, session.FunctionFlag, userMute,
 			0, session.ExtData, 0, noteNames[index], noteAvatars[index], t,
 		).Error; err != nil {

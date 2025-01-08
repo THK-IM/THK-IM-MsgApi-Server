@@ -122,7 +122,9 @@ func (l *SessionLogic) createNewSession(req dto.CreateSessionReq) (*dto.CreateSe
 		roles := []int{model.SessionOwner, model.SessionOwner}
 		noteNames := []string{"", ""}
 		noteAvatars := []string{"", ""}
-		if userSessions, errUserSessions := l.appCtx.SessionUserModel().AddUser(session, entityIds, uIds, roles, noteNames, noteAvatars, 2); err != nil {
+		if userSessions, errUserSessions := l.appCtx.SessionUserModel().AddUser(
+			session, entityIds, uIds, roles, noteNames, noteAvatars, 2,
+		); errUserSessions != nil {
 			return nil, errUserSessions
 		} else {
 			userSession = userSessions[0]

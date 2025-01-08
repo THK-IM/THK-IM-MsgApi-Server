@@ -141,7 +141,7 @@ func (l *SessionLogic) UpdateSessionUser(req dto.SessionUserUpdateReq, claims ba
 		return err
 	}
 	err = l.appCtx.UserSessionModel().UpdateUserSession(req.UIds, req.SId, nil, nil, mute,
-		nil, nil, nil, nil, nil, nil, nil)
+		nil, nil, nil, nil, req.Role, nil, nil)
 	return err
 }
 

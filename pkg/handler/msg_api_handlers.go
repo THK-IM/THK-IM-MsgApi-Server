@@ -77,6 +77,7 @@ func RegisterMsgApiHandlers(appCtx *app.Context) {
 		systemRoute.POST("/user/kickoff", kickOffUser(appCtx))             // 踢下线用户
 		systemRoute.POST("/session", createSession(appCtx))                // 创建/获取session
 		systemRoute.PUT("/session", updateSessionType(appCtx))             // 修改session
+		systemRoute.GET("/session/user", getLatestSessionUsers(appCtx))    // 会话成员查询
 		systemRoute.POST("/session/:id/user", addSessionUser(appCtx))      // 会话增员
 		systemRoute.DELETE("/session/:id/user", deleteSessionUser(appCtx)) // 会话减员
 		systemRoute.POST("/session_message", sendSessionMessage(appCtx))   // 发送会话消息

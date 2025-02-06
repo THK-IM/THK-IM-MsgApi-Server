@@ -20,6 +20,7 @@ type (
 		UpdateSessionType(req *dto.UpdateSessionTypeReq, claims baseDto.ThkClaims) error
 		SysDelSessionUser(sessionId int64, req *dto.SessionDelUserReq, claims baseDto.ThkClaims) error
 		SysAddSessionUser(sessionId int64, req *dto.SessionAddUserReq, claims baseDto.ThkClaims) error
+		SysQueryLatestSessionUsers(sessionId int64, req *dto.QuerySessionUsersReq, claims baseDto.ThkClaims) (*dto.QuerySessionUsersRes, error)
 		PushMessage(req *dto.PushMessageReq, claims baseDto.ThkClaims) (*dto.PushMessageRes, error)
 		SendSysMessage(req *dto.SendSysMessageReq, claims baseDto.ThkClaims) (*dto.SendSysMessageRes, error)
 		SendSessionMessage(req *dto.SendMessageReq, claims baseDto.ThkClaims) (*dto.SendMessageRes, error)

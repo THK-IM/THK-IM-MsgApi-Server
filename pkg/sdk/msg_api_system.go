@@ -149,7 +149,7 @@ func (d defaultMsgApi) SysAddSessionUser(sessionId int64, req *dto.SessionAddUse
 }
 
 func (d defaultMsgApi) SysQueryLatestSessionUsers(sessionId int64, req *dto.QuerySessionUsersReq, claims baseDto.ThkClaims) (*dto.QuerySessionUsersRes, error) {
-	url := fmt.Sprintf("%s%s/%d/session/user/latest?count=%d&m_time=%d", d.endpoint, systemUrl, sessionId, req.Count, req.MTime)
+	url := fmt.Sprintf("%s%s/session/%d/user/latest?count=%d&m_time=%d", d.endpoint, systemUrl, sessionId, req.Count, req.MTime)
 	if req.Role != nil {
 		url += fmt.Sprintf("&role=%d", *req.Role)
 	}
